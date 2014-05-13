@@ -1,5 +1,5 @@
 /***
-Copyright (C) 2013 Aniket Deole <aniket.deole@gmail.com>
+Copyright (C) 2013-2014 Aniket Deole <aniket.deole@gmail.com>
 This program is free software: you can redistribute it and/or modify it
 under the terms of the GNU Lesser General Public License version 2.1, as published
 by the Free Software Foundation.
@@ -113,18 +113,22 @@ private:
 	std::string authToken;
 	int notebookCount;
     int lastUpdateCount;
+    bool connectionOpened;
 
+    std::string notestoreUrl;
+
+    static const std::string evernoteUrl;
+    static const int port;
+    static const std::string parameterThree;
+    static const int sslPort; 
 public:
 	EvernoteDataProvider ();
 	~EvernoteDataProvider ();
 
-	int open ();
+    int open ();
+
 	int close ();
 	int sync ();
-	int login ();
-	int logout ();
-	int getNotebookCountPy ();
-	int getNotebookDetails ();
 	std::string getNotebookName (int);
 	std::string getNotebookGuid (int);
 	long int getNotebookServiceUpdated (int);

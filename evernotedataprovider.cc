@@ -1,5 +1,5 @@
 /***
-Copyright (C) 2013 Aniket Deole <aniket.deole@gmail.com>
+Copyright (C) 2013-2014 Aniket Deole <aniket.deole@gmail.com>
 This program is free software: you can redistribute it and/or modify it
 under the terms of the GNU Lesser General Public License version 2.1, as published
 by the Free Software Foundation.
@@ -12,6 +12,7 @@ PURPOSE.  See the GNU General Public License for more details.
 You should have received a copy of the GNU General Public License along
 with this program.  If not, see <http://www.gnu.org/licenses/>.
 ***/
+
 #include <iostream>
 #include <sstream>
 #include <cstdlib>
@@ -50,43 +51,50 @@ Note(contentHash='\xbbS\x8ad\x05\xd0%\x98\xf9\xa6L[\xc2\xce\x8bY',
 std::vector<evernote::Notebook> gNotebooks;
 std::vector<evernote::Note> gNotes;
 
+
+const std::string evernote::EvernoteDataProvider::evernoteUrl = "sandbox.evernote.com";
+const int evernote::EvernoteDataProvider::port = 80;
+const int evernote::EvernoteDataProvider::sslPort = 443;
+const std::string evernote::EvernoteDataProvider::parameterThree = "/edam/user";
+
+
 evernote::EvernoteDataProvider::EvernoteDataProvider () {
     authToken = "S=s1:U=7558a:E=14aae5ecd73:C=14356ada175:P=1cd:A=en-devtoken:V=2:H=905a30846fdad07b83592ff73da7a7c0";
+    connectionOpened = false;
+    open ();
 }
 
 evernote::EvernoteDataProvider::~EvernoteDataProvider () {
 }
 
 int evernote::EvernoteDataProvider::open () {
-    /* Connect using auth */
+    if (connectionOpened) {
+        return 0;
+    }
 
+    /* Initiate the connection. */
+    boost::shared_ptr<apache::thrift::transport::THttpClient> auth_http( new apache::thrift::transport::THttpClient(evernoteUrl, port, parameterThree));
+    auth_http->open();
+    boost::shared_ptr<apache::thrift::protocol::TBinaryProtocol> userStoreProt( new apache::thrift::protocol::TBinaryProtocol(auth_http));
+    evernote::edam::UserStoreClient userStore(userStoreProt, userStoreProt);
 
+    userStore.getNoteStoreUrl (notestoreUrl, authToken);
+    auth_http->close();   
+
+    connectionOpened = true;
     return 0;
 }
 
 int evernote::EvernoteDataProvider::close () {
+    connectionOpened = false;        
     return 0;
 }
 
-int evernote::EvernoteDataProvider::login () {
-    return 0;
-}
-
-int evernote::EvernoteDataProvider::getNotebookCountPy () {
-    return 0;
-}
 
 bool evernote::EvernoteDataProvider::getNotesForNotebook (std::string g) {
     return 0;
 }
 
-int evernote::EvernoteDataProvider::getNotebookDetails () {
-    return 0;
-}
-
-int evernote::EvernoteDataProvider::logout () {
-    return 0;
-}
 
 int evernote::EvernoteDataProvider::sync () {
 /*
@@ -103,7 +111,7 @@ int evernote::EvernoteDataProvider::sync () {
     7. lastUpdateCount = UpdateCount From Server
     // INCREMENTAL SYNC
     8. getSyncChunk but afterUSN = lastUpdateCount.
- 2   9. For All Notebooks
+    9. For All Notebooks
         ProcessNotebook ()
     10. For All Notes 
         ProcessNotes ()
@@ -117,25 +125,24 @@ int evernote::EvernoteDataProvider::sync () {
     13. END
 */ 
 
-    std::string site = "sandbox.evernote.com";
-    boost::shared_ptr<apache::thrift::transport::THttpClient> auth_http( new apache::thrift::transport::THttpClient("sandbox.evernote.com", 80, "/edam/user") );
-    auth_http->open();
-    boost::shared_ptr<apache::thrift::protocol::TBinaryProtocol> userStoreProt( new apache::thrift::protocol::TBinaryProtocol(auth_http) );
-    evernote::edam::UserStoreClient userStore(userStoreProt, userStoreProt );
+    if (!connectionOpened) {
+        open ();
+        if (!connectionOpened) {
+            /* 
+             * Return with an error 
+             */
+        }
+    }
 
+    std::cout << notestoreUrl << std::endl;
 
-    std::string  noteStoreUrl = "";
-    userStore.getNoteStoreUrl (noteStoreUrl, authToken);
-    auth_http->close();   
-    std::cout << noteStoreUrl << std::endl;
-
-    noteStoreUrl = "/shard/s1/notestore";
+    notestoreUrl = "/shard/s1/notestore";
 
     boost::shared_ptr<apache::thrift::transport::TSSLSocketFactory> sslSocketFactory = boost::shared_ptr<apache::thrift::transport::TSSLSocketFactory>(new apache::thrift::transport::TSSLSocketFactory());;
 
-    boost::shared_ptr<apache::thrift::transport::TSocket> sslSocket = sslSocketFactory->createSocket("sandbox.evernote.com", 443);
+    boost::shared_ptr<apache::thrift::transport::TSocket> sslSocket = sslSocketFactory->createSocket(evernoteUrl, sslPort);
     boost::shared_ptr<apache::thrift::transport::TBufferedTransport> bufferedTransport(new apache::thrift::transport::TBufferedTransport(sslSocket));
-    boost::shared_ptr<apache::thrift::transport::THttpClient> userStoreHttpClient = boost::shared_ptr<apache::thrift::transport::THttpClient>(new apache::thrift::transport::THttpClient(bufferedTransport, "sandbox.evernote.com", noteStoreUrl));
+    boost::shared_ptr<apache::thrift::transport::THttpClient> userStoreHttpClient = boost::shared_ptr<apache::thrift::transport::THttpClient>(new apache::thrift::transport::THttpClient(bufferedTransport, evernoteUrl, notestoreUrl));
 
     userStoreHttpClient->open();
 
@@ -170,8 +177,6 @@ int evernote::EvernoteDataProvider::sync () {
 
     for (unsigned int i = 0; i < notesMetadataList.notes.size (); i++) {
         evernote::edam::NoteMetadata noteMetadata = notesMetadataList.notes[i];
-//        std::cout << noteMetadata.guid << std::endl;
-//        std::cout << "==========================" << std::endl;
         std::string content;
         noteStore.getNoteContent (content, authToken, noteMetadata.guid);
         
@@ -185,8 +190,6 @@ int evernote::EvernoteDataProvider::sync () {
 
         evernote::Note n(noteMetadata.title, noteMetadata.guid, content, noteMetadata.notebookGuid, noteMetadata.created, noteMetadata.updated);
         gNotes.push_back (n);
-//        std::cout << content << std::endl;
-//        std::cout << "==========================" << std::endl;
     }
 
     for (unsigned int i = 0; i < ::gNotes.size (); i++) {
