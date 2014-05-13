@@ -213,6 +213,7 @@ int evernote::EvernoteDataProvider::sync () {
  */
 int main () {
     evernote::EvernoteDataProvider* edp = new evernote::EvernoteDataProvider ();
+    edp->open ();
     edp->sync ();
     return 0;
 }

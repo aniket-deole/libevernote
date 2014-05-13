@@ -51,6 +51,9 @@ public:
         created = c_time / 1000; updated = u_time / 1000; deleted = d;
     }
 
+    std::string enmlToHtml (std::string enmlNote);
+    std::string htmlToEnml (std::string htmlNote);
+
     std::string createInsertStatement () {
     	/*	
 	    	CREATE TABLE notes (id integer primary key, title text, body text, created_time datetime, modified_time datetime, 
