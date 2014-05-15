@@ -17,6 +17,8 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define _EVERNOTEDATAPROVIDER_H_
 
 #include <iostream>
+#include <fstream>
+#include <vector>
 
 namespace evernote {
 
@@ -37,6 +39,36 @@ std::string NumberToString(T pNumber)
  oOStrStream << pNumber;
  return oOStrStream.str();
 }
+
+/**
+ * Classes 
+ */
+
+class Data {
+public:
+    std::string bodyHash;
+    int size;
+    std::string body;
+};
+
+class Resource {
+public:
+    std::string guid;
+    std::string noteGuid;
+    Data data;
+    std::string mime;
+    int width;
+    int height;
+    int duration;
+    bool active;
+    int updateSequenceNum;
+};
+
+class NotesMetadata {
+public:
+    std::string guid;
+};
+
 class Note {
 public:
     std::string title;
@@ -54,27 +86,7 @@ public:
     std::string enmlToHtml (std::string enmlNote);
     std::string htmlToEnml (std::string htmlNote);
 
-    std::string createInsertStatement () {
-    	/*	
-	    	CREATE TABLE notes (id integer primary key, title text, body text, created_time datetime, modified_time datetime, 
-	    	guid text, notebook_guid text, usn integer, dirty integer);
-		*/
-
-        std::string query = "INSERT INTO NOTES VALUES (NULL,'";
-        query += ReplaceString (title, "'", "''");
-        query += "','";
-        query += ReplaceString (content, "'", "''");
-        query += "',";
-        query += NumberToString (created);
-        query += ",";
-        query += NumberToString (updated);
-        query += ",'";
-        query += guid;
-        query += "','";
-        query += notebook_guid;
-        query += "', 0, 0);";
-		return query;
-    }
+    void fetchResources ();
 };
 
 class Notebook {
@@ -86,26 +98,6 @@ public:
     long int updated;
     Notebook (std::string n,std::string g,bool d ,long int c, long int u) {
         name = n; guid = g; isDefaultNotebook = d; created = c / 1000; updated = u / 1000;
-    }
-
-    std::string createInsertStatement () {
-	    /*
-	    CREATE TABLE notebooks (id integer primary key, title text unique, guid text, parent_guid text, created_time datetime, 
-	    modified_time datetime, usn integer, dirty integer)
-		*/
-
-        std::string query = "INSERT INTO NOTEBOOKS VALUES (NULL,'";
-        query += ReplaceString (name, "'", "''");
-        query += "','";
-        query += guid;
-        query += "','";
-        /* Parent GUID should go here. */
-        query += "',";
-        query += NumberToString (created);
-        query += ",";
-        query += NumberToString (updated);
-        query += ", 0, 0);";
-		return query;
     }
 };
 
@@ -123,22 +115,29 @@ private:
     static const std::string evernoteUrl;
     static const int port;
     static const std::string parameterThree;
-    static const int sslPort; 
+    static const int sslPort;
+
+    static const std::string attachmentFolder;
+
+
 public:
 	EvernoteDataProvider ();
 	~EvernoteDataProvider ();
 
     int open ();
-
 	int close ();
 	int sync ();
-	std::string getNotebookName (int);
-	std::string getNotebookGuid (int);
-	long int getNotebookServiceUpdated (int);
-	long int getNotebookServiceCreated (int);
-	bool getNotebookIsDefault (int);
-	bool getNotesForNotebook (std::string);
 
+    /**
+     * Stubs
+     */
+    std::vector<Notebook> getNotebooks ();
+    std::vector<NotesMetadata> getNotesMetadataList ();
+    Note getNoteContent ();
+
+    /*
+     * Getters and Setters
+     */
 	void setAuthToken (std::string at) {
 		authToken = at;
 	}
@@ -147,8 +146,6 @@ public:
 		return authToken;
 	}
 
-	int getNotebookCount () { return notebookCount; }
-	void setNotebookCount (int a) { notebookCount = a; }
 };
 
 }

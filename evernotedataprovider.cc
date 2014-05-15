@@ -20,6 +20,8 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <protocol/TBinaryProtocol.h>
 #include <transport/THttpClient.h>
 #include <transport/TSSLSocket.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 #include "UserStore.h"
 #include "NoteStore.h"
@@ -56,7 +58,7 @@ const std::string evernote::EvernoteDataProvider::evernoteUrl = "sandbox.evernot
 const int evernote::EvernoteDataProvider::port = 80;
 const int evernote::EvernoteDataProvider::sslPort = 443;
 const std::string evernote::EvernoteDataProvider::parameterThree = "/edam/user";
-
+const std::string evernote::EvernoteDataProvider::attachmentFolder = "data/attachments/";
 
 evernote::EvernoteDataProvider::EvernoteDataProvider () {
     authToken = "S=s1:U=7558a:E=14aae5ecd73:C=14356ada175:P=1cd:A=en-devtoken:V=2:H=905a30846fdad07b83592ff73da7a7c0";
@@ -81,6 +83,8 @@ int evernote::EvernoteDataProvider::open () {
     userStore.getNoteStoreUrl (notestoreUrl, authToken);
     auth_http->close();   
 
+    mkdir (attachmentFolder.c_str (),S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+
     connectionOpened = true;
     return 0;
 }
@@ -89,12 +93,6 @@ int evernote::EvernoteDataProvider::close () {
     connectionOpened = false;        
     return 0;
 }
-
-
-bool evernote::EvernoteDataProvider::getNotesForNotebook (std::string g) {
-    return 0;
-}
-
 
 int evernote::EvernoteDataProvider::sync () {
 /*
@@ -147,7 +145,7 @@ int evernote::EvernoteDataProvider::sync () {
     userStoreHttpClient->open();
 
     boost::shared_ptr<apache::thrift::protocol::TBinaryProtocol> noteStoreProt(new apache::thrift::protocol::TBinaryProtocol(userStoreHttpClient) );
-    evernote::edam::NoteStoreClient noteStore(noteStoreProt, noteStoreProt );
+    evernote::edam::NoteStoreClient noteStore(noteStoreProt, noteStoreProt);
 
     std::vector<evernote::edam::Notebook> notebooks;
     std::vector<evernote::edam::Note> notes;
@@ -161,7 +159,7 @@ int evernote::EvernoteDataProvider::sync () {
       evernote::Notebook n(notebooks[i].name, notebooks[i].guid, notebooks[i].defaultNotebook, notebooks[i].serviceCreated, notebooks[i].serviceUpdated);
       gNotebooks.push_back (n);
     }
-//    std::cout << "==========================" << std::endl;
+
     evernote::edam::NoteFilter noteFilter;
     evernote::edam::NotesMetadataResultSpec nmrs;
     nmrs.includeTitle = true;
@@ -185,20 +183,23 @@ int evernote::EvernoteDataProvider::sync () {
         std::vector<evernote::edam::Resource> resourcesList = evernoteNote.resources;
         std::cout << "Resources #" << resourcesList.size () << std::endl;
         for (unsigned int j = 0; j < resourcesList.size (); j++) {
-            std::cout << "ResourceMime:" << resourcesList[j].mime << std::endl;
+            std::cout << "ResourceMime:" << resourcesList[j].attributes.fileName << std::endl;
+              std::ofstream myfile;
+              mkdir ((attachmentFolder + noteMetadata.guid).c_str (),S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+              std::string name;
+              if(resourcesList[j].attributes.fileName.empty ())
+                name = attachmentFolder + noteMetadata.guid + "/" + resourcesList[j].guid;
+              else
+                name = attachmentFolder + noteMetadata.guid + "/" + resourcesList[j].attributes.fileName;
+
+              myfile.open (name.c_str ());
+              myfile << resourcesList[j].data.body;
+              myfile.close();
         }
 
         evernote::Note n(noteMetadata.title, noteMetadata.guid, content, noteMetadata.notebookGuid, noteMetadata.created, noteMetadata.updated);
         gNotes.push_back (n);
     }
-
-    for (unsigned int i = 0; i < ::gNotes.size (); i++) {
-        std::string query = gNotes[i].createInsertStatement ();
-    }
-    for (unsigned int i = 0; i < ::gNotebooks.size (); i++) {
-        std::string query = gNotebooks[i].createInsertStatement ();
-    }
-
 
     userStoreHttpClient->flush ();
     userStoreHttpClient->close();
