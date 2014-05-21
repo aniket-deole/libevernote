@@ -67,6 +67,51 @@ evernote::EvernoteDataProvider::EvernoteDataProvider () {
     authToken = "S=s1:U=7558a:E=14aae5ecd73:C=14356ada175:P=1cd:A=en-devtoken:V=2:H=905a30846fdad07b83592ff73da7a7c0";
     connectionOpened = false;
     open ();
+
+    enmlProhibitedTags.insert ("applet");
+    enmlProhibitedTags.insert ("base");
+    enmlProhibitedTags.insert ("basefont");
+    enmlProhibitedTags.insert ("bgsound");
+    enmlProhibitedTags.insert ("blink");
+    enmlProhibitedTags.insert ("button");
+    enmlProhibitedTags.insert ("dir");
+    enmlProhibitedTags.insert ("embedlet");
+    enmlProhibitedTags.insert ("fieldset");
+    enmlProhibitedTags.insert ("form");
+    enmlProhibitedTags.insert ("frame");
+    enmlProhibitedTags.insert ("frameset");
+    enmlProhibitedTags.insert ("head");
+    enmlProhibitedTags.insert ("iframe");
+    enmlProhibitedTags.insert ("ilayer");
+    enmlProhibitedTags.insert ("input");
+    enmlProhibitedTags.insert ("isindex");
+    enmlProhibitedTags.insert ("label");
+    enmlProhibitedTags.insert ("layer");
+    enmlProhibitedTags.insert ("legend");
+    enmlProhibitedTags.insert ("link");
+    enmlProhibitedTags.insert ("marquee");
+    enmlProhibitedTags.insert ("menu");
+    enmlProhibitedTags.insert ("meta");
+    enmlProhibitedTags.insert ("noframes");
+    enmlProhibitedTags.insert ("noscript");
+    enmlProhibitedTags.insert ("object");
+    enmlProhibitedTags.insert ("optgroup");
+    enmlProhibitedTags.insert ("option");
+    enmlProhibitedTags.insert ("param");
+    enmlProhibitedTags.insert ("plaintext");
+    enmlProhibitedTags.insert ("script");
+    enmlProhibitedTags.insert ("select");
+    enmlProhibitedTags.insert ("style");
+    enmlProhibitedTags.insert ("textarea");
+    enmlProhibitedTags.insert ("xml");
+
+    enmlProhibitedAttributes.insert ("id");
+    enmlProhibitedAttributes.insert ("class");
+    enmlProhibitedAttributes.insert ("ondblclick");
+    enmlProhibitedAttributes.insert ("accesskey");
+    enmlProhibitedAttributes.insert ("data");
+    enmlProhibitedAttributes.insert ("dynsrc");
+    enmlProhibitedAttributes.insert ("tabindex");
 }
 
 evernote::EvernoteDataProvider::~EvernoteDataProvider () {
@@ -202,7 +247,7 @@ int evernote::EvernoteDataProvider::sync () {
               myfile.close();
         }
 
-        evernote::Note n(noteMetadata.title, noteMetadata.guid, content, noteMetadata.notebookGuid, noteMetadata.created, noteMetadata.updated);
+        evernote::Note n(noteMetadata.title, noteMetadata.guid, content, noteMetadata.notebookGuid, noteMetadata.created, noteMetadata.updated,false, true);
         outFile << "================CONTENT ENML======================" << std::endl;
         outFile << n.contentEnml << std::endl;
         outFile << "===============/CONTENT ENML======================" << std::endl;
@@ -224,7 +269,30 @@ int evernote::EvernoteDataProvider::sync () {
     return 0;
 }
 
+void evernote::Note::convertNodesFromEnmlToHtml (rapidxml::xml_node<>* root) {
+    for (rapidxml::xml_attribute<> *attr = node->first_attribute(); attr; 
+            attr = attr->next_attribute ()) {
+        char* attrName= attr->name ();
+        if (evernote::EvernoteDataProvider::enmlProhibitedAttributes.count (attrName)) {
+            root->remove_attribute (attr);
+        }
+    }
+
+    for (rapidxml::xml_node<> *child = node->firt_node (); node;
+            node = node->next_sibling ()) {
+        char* nodeName = node->name ();
+        if (evernote::EvernoteDataProvider::enmlProhibitedTags.count (nodeName)) {
+            root->remove_node (node);
+        } else {
+            convertNodesFromEnmlToHtml (node);
+        }
+    }
+}
+
 void evernote::Note::enmlToHtml () {
+    if (html) {
+        return;
+    }
     rapidxml::xml_document<> doc;
     char *cstr = new char[contentEnml.length() + 1];
     strcpy(cstr, contentEnml.c_str());
@@ -235,6 +303,7 @@ void evernote::Note::enmlToHtml () {
     std::cout << "Name of my first node is: " << doc.first_node()->name() << std::endl;
     rapidxml::print(std::back_inserter(contentHtml), doc);
     delete cstr;
+    html = true;
 }
 
 

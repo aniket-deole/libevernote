@@ -19,6 +19,9 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <set>
+
+#include "rapidxml.hpp"
 
 namespace evernote {
 
@@ -79,13 +82,23 @@ public:
     long int created;
     long int updated;
     bool deleted;
-    Note (std::string t, std::string g, std::string c, std::string n_g, long int c_time, long int u_time, bool d = false) {
+    bool enml;
+    bool html;
+    Note (std::string t, std::string g, std::string c, std::string n_g, long int c_time, long int u_time, bool d = false, bool e = true) {
         title = t; guid = g; contentEnml = c; notebook_guid = n_g;
         created = c_time / 1000; updated = u_time / 1000; deleted = d;
+        enml = e;
+        if (enml) {
+            html = false;
+        } else {
+            html = true;
+        }
     }
 
+    void convertNodesFromEnmlToHtml (rapidxml::xml_node<>* );
+
     void enmlToHtml ();
-    std::string htmlToEnml ();
+    void htmlToEnml ();
 
     void fetchResources ();
 };
@@ -122,6 +135,10 @@ private:
 
 
 public:
+
+    std::set<std::string> enmlProhibitedTags;
+    std::set<std::string> enmlProhibitedAttributes;
+
 	EvernoteDataProvider ();
 	~EvernoteDataProvider ();
 
