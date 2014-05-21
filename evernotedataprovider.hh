@@ -73,18 +73,19 @@ class Note {
 public:
     std::string title;
     std::string guid;
-    std::string content;
+    std::string contentEnml;
+    std::string contentHtml;
     std::string notebook_guid;
     long int created;
     long int updated;
     bool deleted;
     Note (std::string t, std::string g, std::string c, std::string n_g, long int c_time, long int u_time, bool d = false) {
-        title = t; guid = g; content = c; notebook_guid = n_g;
+        title = t; guid = g; contentEnml = c; notebook_guid = n_g;
         created = c_time / 1000; updated = u_time / 1000; deleted = d;
     }
 
-    std::string enmlToHtml (std::string enmlNote);
-    std::string htmlToEnml (std::string htmlNote);
+    void enmlToHtml ();
+    std::string htmlToEnml ();
 
     void fetchResources ();
 };

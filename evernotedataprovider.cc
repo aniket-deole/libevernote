@@ -23,6 +23,9 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <sys/stat.h>
 #include <sys/types.h>
 
+#include "rapidxml_print.hpp"
+#include "rapidxml.hpp"
+
 #include "UserStore.h"
 #include "NoteStore.h"
 
@@ -153,9 +156,12 @@ int evernote::EvernoteDataProvider::sync () {
 
     evernote::edam::NotesMetadataList notesMetadataList;
 
+    std::ofstream outFile;
+    outFile.open ("log");
+
 
     for (unsigned int i = 0; i < notebooks.size (); i++) {
-      std::cout << notebooks[i].guid << ":" << notebooks[i].stack << std::endl;
+      outFile << notebooks[i].guid << ":" << notebooks[i].stack << std::endl;
       evernote::Notebook n(notebooks[i].name, notebooks[i].guid, notebooks[i].defaultNotebook, notebooks[i].serviceCreated, notebooks[i].serviceUpdated);
       gNotebooks.push_back (n);
     }
@@ -181,9 +187,8 @@ int evernote::EvernoteDataProvider::sync () {
         evernote::edam::Note evernoteNote;
         noteStore.getNote (evernoteNote, authToken, noteMetadata.guid, false, true, false, false);
         std::vector<evernote::edam::Resource> resourcesList = evernoteNote.resources;
-        std::cout << "Resources #" << resourcesList.size () << std::endl;
         for (unsigned int j = 0; j < resourcesList.size (); j++) {
-            std::cout << "ResourceMime:" << resourcesList[j].attributes.fileName << std::endl;
+                outFile << "ResourceMime:" << resourcesList[j].attributes.fileName << std::endl;
               std::ofstream myfile;
               mkdir ((attachmentFolder + noteMetadata.guid).c_str (),S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
               std::string name;
@@ -198,6 +203,15 @@ int evernote::EvernoteDataProvider::sync () {
         }
 
         evernote::Note n(noteMetadata.title, noteMetadata.guid, content, noteMetadata.notebookGuid, noteMetadata.created, noteMetadata.updated);
+        outFile << "================CONTENT ENML======================" << std::endl;
+        outFile << n.contentEnml << std::endl;
+        outFile << "===============/CONTENT ENML======================" << std::endl;
+        n.enmlToHtml ();
+        outFile << "================CONTENT HTML======================" << std::endl;
+        outFile << n.contentHtml << std::endl;
+        outFile << "===============/CONTENT HTML======================" << std::endl;
+        outFile << "================RESOURCES" << resourcesList.size () << "========================" << std::endl;
+
         gNotes.push_back (n);
     }
 
@@ -205,9 +219,24 @@ int evernote::EvernoteDataProvider::sync () {
     userStoreHttpClient->close();
     userStoreHttpClient->close();
 
-    std::cout << notebooks.size () << notesMetadataList.notes.size () << std::endl;
+    outFile << notebooks.size () << notesMetadataList.notes.size () << std::endl;
+    outFile.close ();
     return 0;
 }
+
+void evernote::Note::enmlToHtml () {
+    rapidxml::xml_document<> doc;
+    char *cstr = new char[contentEnml.length() + 1];
+    strcpy(cstr, contentEnml.c_str());
+    doc.parse<0> (cstr);
+    char *rootNode = doc.allocate_string("html");        // Allocate string and copy name into it
+    std::cout << "Name of my first node is: " << doc.first_node()->name() << std::endl;
+    doc.first_node ()->name (rootNode);
+    std::cout << "Name of my first node is: " << doc.first_node()->name() << std::endl;
+    rapidxml::print(std::back_inserter(contentHtml), doc);
+    delete cstr;
+}
+
 
 /*
  * Sample program that gets notes from Evernote's dev server account.
