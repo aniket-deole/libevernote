@@ -94,7 +94,8 @@ public:
             html = true;
         }
     }
-
+    
+    rapidxml::xml_document<>* docP;
     void convertNodesFromEnmlToHtml (rapidxml::xml_node<>* );
 
     void enmlToHtml ();
@@ -136,8 +137,8 @@ private:
 
 public:
 
-    std::set<std::string> enmlProhibitedTags;
-    std::set<std::string> enmlProhibitedAttributes;
+    static std::set<std::string> enmlProhibitedTags;
+    static std::set<std::string> enmlProhibitedAttributes;
 
 	EvernoteDataProvider ();
 	~EvernoteDataProvider ();

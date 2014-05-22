@@ -63,6 +63,9 @@ const int evernote::EvernoteDataProvider::sslPort = 443;
 const std::string evernote::EvernoteDataProvider::parameterThree = "/edam/user";
 const std::string evernote::EvernoteDataProvider::attachmentFolder = "data/attachments/";
 
+std::set<std::string> evernote::EvernoteDataProvider::enmlProhibitedTags;
+std::set<std::string> evernote::EvernoteDataProvider::enmlProhibitedAttributes;
+
 evernote::EvernoteDataProvider::EvernoteDataProvider () {
     authToken = "S=s1:U=7558a:E=14aae5ecd73:C=14356ada175:P=1cd:A=en-devtoken:V=2:H=905a30846fdad07b83592ff73da7a7c0";
     connectionOpened = false;
@@ -270,21 +273,40 @@ int evernote::EvernoteDataProvider::sync () {
 }
 
 void evernote::Note::convertNodesFromEnmlToHtml (rapidxml::xml_node<>* root) {
-    for (rapidxml::xml_attribute<> *attr = node->first_attribute(); attr; 
+    for (rapidxml::xml_attribute<> *attr = root->first_attribute(); attr; 
             attr = attr->next_attribute ()) {
-        char* attrName= attr->name ();
+        char* attrName= attr->name ();  
         if (evernote::EvernoteDataProvider::enmlProhibitedAttributes.count (attrName)) {
             root->remove_attribute (attr);
         }
     }
+    char* rootNodeName = root->name ();
+    if (!strcmp (rootNodeName, "en-media")) {
+        char* hashValue;
+        for (rapidxml::xml_attribute<> *attr = root->first_attribute(); attr; 
+            attr = attr->next_attribute ()) {
+            char* attrName= attr->name ();
+            if (!strcmp (attrName, "hash")) {
+                hashValue = attr->value ();
+            }
+            if (!strcmp (attrName, "type")) {
+                if (!strncmp (attr->value(), "image", 5)) {
+                    root->name (docP->allocate_string("img"));
+                    rapidxml::xml_attribute<> *attr = docP->allocate_attribute("src", hashValue);
+                    root->append_attribute(attr);
+                    std::cout << root->name () << std::endl;
+                }
+            }
+        }
+    }
 
-    for (rapidxml::xml_node<> *child = node->firt_node (); node;
-            node = node->next_sibling ()) {
-        char* nodeName = node->name ();
+    for (rapidxml::xml_node<> *child = root->first_node (); child;
+            child = child->next_sibling ()) {
+        char* nodeName = child->name ();
         if (evernote::EvernoteDataProvider::enmlProhibitedTags.count (nodeName)) {
-            root->remove_node (node);
+            root->remove_node (child);
         } else {
-            convertNodesFromEnmlToHtml (node);
+            convertNodesFromEnmlToHtml (child);
         }
     }
 }
@@ -301,6 +323,8 @@ void evernote::Note::enmlToHtml () {
     std::cout << "Name of my first node is: " << doc.first_node()->name() << std::endl;
     doc.first_node ()->name (rootNode);
     std::cout << "Name of my first node is: " << doc.first_node()->name() << std::endl;
+    docP = &doc;
+    convertNodesFromEnmlToHtml (doc.first_node ());
     rapidxml::print(std::back_inserter(contentHtml), doc);
     delete cstr;
     html = true;
