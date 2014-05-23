@@ -28,6 +28,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "UserStore.h"
 #include "NoteStore.h"
+#include <openssl/md5.h>
 
 #include "evernotedataprovider.hh"
 
@@ -52,6 +53,13 @@ Note(contentHash='\xbbS\x8ad\x05\xd0%\x98\xf9\xa6L[\xc2\xce\x8bY',
 )
 */
 
+// Print the MD5 sum as hex-digits.
+void print_md5_sum(unsigned char* md) {
+    int i;
+    for(i=0; i <MD5_DIGEST_LENGTH; i++) {
+            printf("%02x",md[i]);
+    }
+}
 
 std::vector<evernote::Notebook> gNotebooks;
 std::vector<evernote::Note> gNotes;
@@ -248,9 +256,19 @@ int evernote::EvernoteDataProvider::sync () {
               myfile.open (name.c_str ());
               myfile << resourcesList[j].data.body;
               myfile.close();
+
+
+              unsigned char result[MD5_DIGEST_LENGTH];
+              unsigned char *cstr = new unsigned char[(long)resourcesList[j].data.size + 1];
+              memcpy((unsigned char *)cstr, resourcesList[j].data.body.c_str(), (long)resourcesList[j].data.size);
+              MD5((unsigned char *) cstr, (long)resourcesList[j].data.size, result);
+              print_md5_sum(result); std::cout << std::endl;
+              delete cstr;
+              exit (0);
         }
 
-        evernote::Note n(noteMetadata.title, noteMetadata.guid, content, noteMetadata.notebookGuid, noteMetadata.created, noteMetadata.updated,false, true);
+        evernote::Note n(noteMetadata.title, noteMetadata.guid, content, noteMetadata.notebookGuid, 
+            noteMetadata.created, noteMetadata.updated, evernote::Note::HTML, false);
         outFile << "================CONTENT ENML======================" << std::endl;
         outFile << n.contentEnml << std::endl;
         outFile << "===============/CONTENT ENML======================" << std::endl;
@@ -273,13 +291,6 @@ int evernote::EvernoteDataProvider::sync () {
 }
 
 void evernote::Note::convertNodesFromEnmlToHtml (rapidxml::xml_node<>* root) {
-    for (rapidxml::xml_attribute<> *attr = root->first_attribute(); attr; 
-            attr = attr->next_attribute ()) {
-        char* attrName= attr->name ();  
-        if (evernote::EvernoteDataProvider::enmlProhibitedAttributes.count (attrName)) {
-            root->remove_attribute (attr);
-        }
-    }
     char* rootNodeName = root->name ();
     if (!strcmp (rootNodeName, "en-media")) {
         char* hashValue;
@@ -303,6 +314,31 @@ void evernote::Note::convertNodesFromEnmlToHtml (rapidxml::xml_node<>* root) {
     for (rapidxml::xml_node<> *child = root->first_node (); child;
             child = child->next_sibling ()) {
         char* nodeName = child->name ();
+        convertNodesFromEnmlToHtml (child);
+    }
+}
+
+void evernote::Note::convertNodesFromHtmlToEnml (rapidxml::xml_node<>* root) {
+    for (rapidxml::xml_attribute<> *attr = root->first_attribute(); attr; 
+            attr = attr->next_attribute ()) {
+        char* attrName= attr->name ();  
+        if (evernote::EvernoteDataProvider::enmlProhibitedAttributes.count (attrName)) {
+            root->remove_attribute (attr);
+        }
+    }
+    char* rootNodeName = root->name ();
+
+    if (!strcmp (rootNodeName, "body")) {
+        root->name (docP->allocate_string ("en-note"));
+    }
+
+    /**
+     * Convert img tags to en-media 
+     */
+
+    for (rapidxml::xml_node<> *child = root->first_node (); child;
+            child = child->next_sibling ()) {
+        char* nodeName = child->name ();
         if (evernote::EvernoteDataProvider::enmlProhibitedTags.count (nodeName)) {
             root->remove_node (child);
         } else {
@@ -312,24 +348,27 @@ void evernote::Note::convertNodesFromEnmlToHtml (rapidxml::xml_node<>* root) {
 }
 
 void evernote::Note::enmlToHtml () {
-    if (html) {
-        return;
-    }
     rapidxml::xml_document<> doc;
     char *cstr = new char[contentEnml.length() + 1];
     strcpy(cstr, contentEnml.c_str());
     doc.parse<0> (cstr);
-    char *rootNode = doc.allocate_string("html");        // Allocate string and copy name into it
-    std::cout << "Name of my first node is: " << doc.first_node()->name() << std::endl;
+    char *rootNode = doc.allocate_string("body");        // Allocate string and copy name into it
     doc.first_node ()->name (rootNode);
-    std::cout << "Name of my first node is: " << doc.first_node()->name() << std::endl;
     docP = &doc;
     convertNodesFromEnmlToHtml (doc.first_node ());
     rapidxml::print(std::back_inserter(contentHtml), doc);
     delete cstr;
-    html = true;
 }
 
+void evernote::Note::htmlToEnml () {
+    rapidxml::xml_document<> doc;
+    char *cstr = new char[contentHtml.length() + 1];
+    strcpy (cstr, contentHtml.c_str ());
+    doc.parse<0> (cstr);
+    docP = &doc;
+    convertNodesFromHtmlToEnml (doc.first_node ());
+    rapidxml::print(std::back_inserter (contentEnml), doc);
+}
 
 /*
  * Sample program that gets notes from Evernote's dev server account.

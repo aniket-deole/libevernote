@@ -82,21 +82,24 @@ public:
     long int created;
     long int updated;
     bool deleted;
-    bool enml;
-    bool html;
-    Note (std::string t, std::string g, std::string c, std::string n_g, long int c_time, long int u_time, bool d = false, bool e = true) {
+
+    enum NoteType {HTML, ENML};
+    NoteType type;
+
+    Note (std::string t, std::string g, std::string c, std::string n_g, long int c_time, long int u_time, NoteType nt, bool d = false) {
         title = t; guid = g; contentEnml = c; notebook_guid = n_g;
         created = c_time / 1000; updated = u_time / 1000; deleted = d;
-        enml = e;
-        if (enml) {
-            html = false;
-        } else {
-            html = true;
+        type = nt;
+        if (type == HTML) {
+            htmlToEnml ();
+        }else {
+            enmlToHtml ();
         }
     }
     
     rapidxml::xml_document<>* docP;
     void convertNodesFromEnmlToHtml (rapidxml::xml_node<>* );
+    void convertNodesFromHtmlToEnml (rapidxml::xml_node<>* );
 
     void enmlToHtml ();
     void htmlToEnml ();
