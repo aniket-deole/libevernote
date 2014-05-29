@@ -424,9 +424,10 @@ namespace evernote {
 	class NoteStore {
 	private:
 		evernote::edam::NoteStoreClient* noteStore;
+		boost::shared_ptr<apache::thrift::transport::THttpClient> userStoreHttpClient;
 	public:
 		NoteStore (std::string noteStoreUrl);
-
+		~NoteStore ();
 		SyncState* getSyncState (std::string authenticationToken);
 		SyncState* getSyncStateWithMetrics (std::string authenticationToken, 
 			ClientUsageMetrics* clientMetrics);
@@ -608,10 +609,12 @@ namespace evernote {
 
 	class UserStore {
 	private:
-		evernote::edam::UserStoreClient* userStoreClient;
+		evernote::edam::UserStoreClient* userStore;
+		boost::shared_ptr<apache::thrift::transport::THttpClient> auth_http;
 	public:
 		UserStore (std::string evernoteUrl, int port, std::string parameterThree,
 			std::string authenticationToken);
+		~UserStore ();
 
 		bool checkVersion (std::string clientName, short edamVersionMajor = 1,
 			short edamVersionMinor = 15);
