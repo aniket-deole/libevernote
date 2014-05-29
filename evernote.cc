@@ -41,9 +41,11 @@ void print_md5_sum(unsigned char* md) {
 
 evernote::UserStore::UserStore (std::string evernoteUrl, int port, std::string parameterThree,
             std::string authenticationToken) {
-    auth_http = boost::shared_ptr<apache::thrift::transport::THttpClient>( new apache::thrift::transport::THttpClient(evernoteUrl, port, parameterThree));
+    auth_http = boost::shared_ptr<apache::thrift::transport::THttpClient>(
+        new apache::thrift::transport::THttpClient(evernoteUrl, port, parameterThree));
     auth_http->open();
-    boost::shared_ptr<apache::thrift::protocol::TBinaryProtocol> userStoreProt( new apache::thrift::protocol::TBinaryProtocol(auth_http));
+    boost::shared_ptr<apache::thrift::protocol::TBinaryProtocol> userStoreProt(
+        new apache::thrift::protocol::TBinaryProtocol(auth_http));
     userStore = new evernote::edam::UserStoreClient (userStoreProt, userStoreProt);
 }
 
@@ -58,15 +60,21 @@ std::string evernote::UserStore::getNoteStoreUrl (std::string authToken) {
 }
 
 evernote::NoteStore::NoteStore (std::string noteStoreUrl) {
-    boost::shared_ptr<apache::thrift::transport::TSSLSocketFactory> sslSocketFactory = boost::shared_ptr<apache::thrift::transport::TSSLSocketFactory>(new apache::thrift::transport::TSSLSocketFactory());;
+    boost::shared_ptr<apache::thrift::transport::TSSLSocketFactory> sslSocketFactory = 
+    boost::shared_ptr<apache::thrift::transport::TSSLSocketFactory>(
+        new apache::thrift::transport::TSSLSocketFactory());;
 
-    boost::shared_ptr<apache::thrift::transport::TSocket> sslSocket = sslSocketFactory->createSocket("sandbox.evernote.com", 443);
-    boost::shared_ptr<apache::thrift::transport::TBufferedTransport> bufferedTransport(new apache::thrift::transport::TBufferedTransport(sslSocket));
-    userStoreHttpClient = boost::shared_ptr<apache::thrift::transport::THttpClient>(new apache::thrift::transport::THttpClient(bufferedTransport, "sandbox.evernote.com", noteStoreUrl));
+    boost::shared_ptr<apache::thrift::transport::TSocket> sslSocket = sslSocketFactory->
+        createSocket("sandbox.evernote.com", 443);
+    boost::shared_ptr<apache::thrift::transport::TBufferedTransport> bufferedTransport(
+        new apache::thrift::transport::TBufferedTransport(sslSocket));
+    userStoreHttpClient = boost::shared_ptr<apache::thrift::transport::THttpClient>(
+        new apache::thrift::transport::THttpClient(bufferedTransport, "sandbox.evernote.com", noteStoreUrl));
 
     userStoreHttpClient->open();
 
-    boost::shared_ptr<apache::thrift::protocol::TBinaryProtocol> noteStoreProt(new apache::thrift::protocol::TBinaryProtocol(userStoreHttpClient) );
+    boost::shared_ptr<apache::thrift::protocol::TBinaryProtocol> noteStoreProt(
+        new apache::thrift::protocol::TBinaryProtocol(userStoreHttpClient) );
     noteStore = new evernote::edam::NoteStoreClient (noteStoreProt, noteStoreProt);
 }
 
@@ -79,6 +87,11 @@ evernote::NoteStore::~NoteStore () {
  * Sample program that gets notes from Evernote's dev server account.
  */
 int main () {
+    /*
+     * AuthToken would be recieved after oauth. 
+     * Right now we are using the one provided by evernote for accessing 
+     * sandbox.evernote.com
+     */
     std::string authToken = "S=s1:U=7558a:E=14aae5ecd73:C=14356ada175:P=1cd:A=en-devtoken:V=2:H=905a30846fdad07b83592ff73da7a7c0";
     
     evernote::UserStore* userStore = new evernote::UserStore ("sandbox.evernote.com", 80, "/edam/user", authToken);
