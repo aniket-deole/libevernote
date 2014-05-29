@@ -31,3 +31,6 @@ clean:
 
 test: all
 	$(CC) -g evernotedataprovider.cc -Ievernote-sdk -Ievernote-sdk/thrift `pkg-config --cflags --libs thrift` -L`pwd` -levernote -o evernotecppsdktest && export LD_LIBRARY_PATH=`pwd`:$LD_LIBRARY_PATH && ./evernotecppsdktest
+
+testnew: all
+	$(CC) -g evernote.cc -Ievernote-sdk -Ievernote-sdk/thrift `pkg-config --cflags --libs thrift` -L`pwd` -levernote -o evernotecppsdktest && export LD_LIBRARY_PATH=`pwd`:$LD_LIBRARY_PATH && ./evernotecppsdktest

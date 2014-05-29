@@ -1,36 +1,82 @@
+#include <vector>
+#include <map>
+#include <set>
+
+
 namespace evernote {
+
+	class Timestamp;
+	class PremiumOrderStatus;
+	class Resource;
+	class NoteAttributes;
+	class UserID;
+	class Publishing;
+	class SharedNotebook;
+	class User;
+	class NotebookRestrictions;
+	class ResourceAttributes;
+	class SavedSearchScope;
+	class SharedNotebookRecipientSettings;
+	class UserAttributes;
+	class SyncChunkFilter;
+	class AuthenticateResult;
+	class RelatedResultSpec;
+	class PublicUserInfo;
+	class BootstrapSettings;
+
+	enum BusinessUserRole { ADMIN = 1, NORMAL = 2 };
+
+	enum SharedNotebookPrivilegeLevel {READ_NOTEBOOK = 0,
+		MODIFY_NOTEBOOK_PLUS_ACTIVITY = 1,
+		READ_NOTEBOOK_PLUS_ACTIVITY = 2,
+		GROUP = 3,
+		FULL_ACCESS = 4,
+		BUSINESS_FULL_ACCESS = 5,
+	};
+
+	enum SharedNotebookInstanceRestrictions {
+		ONLY_JOINED_OR_PREVIEW = 1,
+		NO_SHARED_NOTEBOOKS = 2,
+	};
+
+	enum SponsoredGroupRole {
+		GROUP_MEMBER = 1,
+		GROUP_ADMIN = 2,
+		GROUP_OWNER = 3,
+	};
+
 	/** BASIC TYPES */
 	class Accounting {
 	public:
 		long uploadLimit;
-		Timestamp uploadLimitEnd;
+		Timestamp* uploadLimitEnd;
 		long uploadLimitNextMonth;
 		PremiumOrderStatus* premiumServiceStatus;
 		std::string premiumOrderNumber;
 		std::string premiumCommerceService;
-		Timestamp premiumServiceStart;
+		Timestamp* premiumServiceStart;
 		std::string premiumServiceSKU;
-		Timestamp lastSuccessfulCharge;
-		Timestamp lastFailedCharge;
+		Timestamp* lastSuccessfulCharge;
+		Timestamp* lastFailedCharge;
 		std::string lastFailedChargeReason;
-		Timestamp nextPaymentDue;
-		Timestamp premiumLockUntil;
-		Timestamp updated;
+		Timestamp* nextPaymentDue;
+		Timestamp* premiumLockUntil;
+		Timestamp* updated;
 		std::string premiumSubscriptionNumber;
-		Timestamp lastRequestedCharge;
+		Timestamp* lastRequestedCharge;
 		std::string currency;
 		int unitPrice;
 		int businessId;
 		std::string businessName;
 		BusinessUserRole businessRole;
 		int unitDiscount;
-		Timestamp nextChargeDate;
+		Timestamp* nextChargeDate;
 	};
 
 	class BusinessNotebook {
 	public:
 		std::string notebookDescription;
-		ShardeNotebookPrivilegeLevel privilege;
+		SharedNotebookPrivilegeLevel privilege;
 		bool recommended;
 	};
 
@@ -42,8 +88,6 @@ namespace evernote {
 		std::string email;
 	};
 
-	class BusinessUserRole {};
-
 	class Data {
 	public:
 		std::string bodyHash;
@@ -52,7 +96,7 @@ namespace evernote {
 	};
 
 	class GUID {
-	public;
+	public:
 		std::string guid;
 	};
 
@@ -84,21 +128,21 @@ namespace evernote {
 		std::string content;
 		std::string contentHash;
 		int contentLength;
-		Timestamp created;
-		Timestamp updated;
-		Timestamp deleted;
+		Timestamp* created;
+		Timestamp* updated;
+		Timestamp* deleted;
 		bool active;
 		int updateSequenceNum;
 		std::string notebookGuid;
-		vector<GUID> tagGuids;
-		vector<Resource*> resources;
+		std::vector<GUID> tagGuids;
+		std::vector<Resource*> resources;
 		NoteAttributes* attributes;
-		vector<std::string> tagNames;
+		std::vector<std::string> tagNames;
 	};
 
 	class NoteAttributes {
 	public:
-		Timestamp subjectDate;
+		Timestamp* subjectDate;
 		double latitude;
 		double longitude;
 		double altitude;
@@ -106,10 +150,10 @@ namespace evernote {
 		std::string source;
 		std::string sourceURL;
 		std::string sourceApplication;
-		Timestamp shareDate;
+		Timestamp* shareDate;
 		long reminderOrder;
-		Timestamp reminderDoneTime;
-		Timestamp reminderTime;
+		Timestamp* reminderDoneTime;
+		Timestamp* reminderTime;
 		std::string placeName;
 		std::string contentClass;
 		LazyMap* applicationData;
@@ -127,13 +171,13 @@ namespace evernote {
 		std::string name;
 		int updateSequenceNum;
 		bool defaultNotebook;
-		Timestamp serviceCreated;
-		Timestamp serviceUpdated;
+		Timestamp* serviceCreated;
+		Timestamp* serviceUpdated;
 		Publishing* publishing;
 		bool published;
 		std::string stack;
-		vector<long> sharedNotebookIds;
-		vector<SharedNotebook*> sharedNotebooks;
+		std::vector<long> sharedNotebookIds;
+		std::vector<SharedNotebook*> sharedNotebooks;
 		BusinessNotebook* businessNotebook;
 		User* contact;
 		NotebookRestrictions* restrictions;
@@ -174,10 +218,10 @@ namespace evernote {
 	
 	class PremiumInfo {
 	public:
-		Timestamp currentTime;
+		Timestamp* currentTime;
 		bool premium;
 		bool premiumRecurring;
-		Timestamp premiumExpirationDate;
+		Timestamp* premiumExpirationDate;
 		bool premiumExtendable;
 		bool premiumPending;
 		bool premiumCancellationPending;
@@ -222,7 +266,7 @@ namespace evernote {
 	class ResourceAttributes {
 	public:
 		std::string sourceURL;
-		Timestamp timestamp;
+		Timestamp* timestamp;
 		double latitude;
 		double longitude;
 		double altitude;
@@ -259,18 +303,14 @@ namespace evernote {
 		std::string email;
 		bool notebookModifiable;
 		bool requireLogin;
-		Timestamp serviceCreated;
-		Timestamp serviceUpdated;
+		Timestamp* serviceCreated;
+		Timestamp* serviceUpdated;
 		std::string shareKey;
 		std::string username;
 		SharedNotebookPrivilegeLevel privilege;
 		bool allowPreview;
-		SharedNotebookRecipientSettings recipientSettings;
+		SharedNotebookRecipientSettings* recipientSettings;
 	};
-
-	class SharedNotebookInstanceRestrictions {};
-
-	class SharedNotebookPrivilegeLevel {};
 
 	class SharedNotebookRecipientSettings {
 	public:
@@ -286,8 +326,6 @@ namespace evernote {
 		int updateSequenceNum;
 	};
 
-	class SponsoredGroupRole {};
-
 	class Timestamp {
 	public:
 		long timestamp;
@@ -295,15 +333,15 @@ namespace evernote {
 
 	class User {
 	public:
-		UserId id;
+		UserID* id;
 		std::string username;
 		std::string email;
 		std::string name;
 		std::string timezone;
 		PrivilegeLevel privilege;
-		Timestamp created;
-		Timestamp updated;
-		Timestamp deleted;
+		Timestamp* created;
+		Timestamp* updated;
+		Timestamp* deleted;
 		bool active;
 		std::string shardId;
 		UserAttributes* attributes;
@@ -318,19 +356,19 @@ namespace evernote {
 		double defaultLatitude;
 		double defaultLongitude;
 		bool preactivation;
-		vector<std::string> viewedPromotions;
+		std::vector<std::string> viewedPromotions;
 		std::string incmoingEmailAddress;
-		vector<std::string> recentMailedAddresses;
+		std::vector<std::string> recentMailedAddresses;
 		std::string comments;
-		Timestamp dateAgreedToTermsOfService;
+		Timestamp* dateAgreedToTermsOfService;
 		int maxReferrals;
 		int referralCount;
 		std::string refererCode;
-		Timestamp sentEmailDate;
+		Timestamp* sentEmailDate;
 		int sentEmailCount;
 		int dailyEmailLimit;
-		Timestamp emailOptOutDate;
-		Timestamp partnerEmailOptInDate;
+		Timestamp* emailOptOutDate;
+		Timestamp* partnerEmailOptInDate;
 		std::string preferredLanguage;
 		std::string preferredCountry;
 		bool clipFullPage;
@@ -384,7 +422,11 @@ namespace evernote {
 	class SyncState {};
 
 	class NoteStore {
+	private:
+		evernote::edam::NoteStoreClient* noteStore;
 	public:
+		NoteStore (std::string noteStoreUrl);
+
 		SyncState* getSyncState (std::string authenticationToken);
 		SyncState* getSyncStateWithMetrics (std::string authenticationToken, 
 			ClientUsageMetrics* clientMetrics);
@@ -395,22 +437,22 @@ namespace evernote {
 		SyncChunk* getLinkedNotebookSyncChunk (std::string authenticationToken,
 			LinkedNotebook* linkedNotebook, int afterUSN, int maxEntries,
 			bool fullSyncOnly);
-		vector<Notebook*>* listNotebooks(std::string authenticationToken);
+		std::vector<Notebook*>* listNotebooks(std::string authenticationToken);
 		Notebook* getNotebook (std::string authenticationToken, GUID guid);
 		Notebook* getDefaultNotebook (std::string authenticationToken);
 		Notebook* createNotebook (std::string authenticationToken,
 			Notebook* notebook);
 		int updateNotebook (std::string authenticationToken, Notebook* notebook);
 		int expungeNotebook (std::string authenticationToken, GUID guid);
-		vector<Tag*>* listTags (std::string authenticationToken);
-		vector<Tag*>* listTagsByNotebook (std::string authenticationToken,
+		std::vector<Tag*>* listTags (std::string authenticationToken);
+		std::vector<Tag*>* listTagsByNotebook (std::string authenticationToken,
 			GUID notebookGuid);
 		Tag* getTag (std::string authenticationToken, GUID guid);
 		Tag* createTag (std::string authenticationToken, Tag* tag);
 		int updateTag (std::string authenticationToken, Tag* tag);
 		void untagAll (std::string authenticationToken, GUID guid);
 		int expungeTag (std::string authenticationToken, GUID guid);
-		vector<SavedSearch*>* listSearches (std::string authenticationToken);
+		std::vector<SavedSearch*>* listSearches (std::string authenticationToken);
 		SavedSearch* getSearch (std::string authenticationToken, GUID guid);
 		SavedSearch* createSearch (std::string authenticationToken, 
 			SavedSearch* search);
@@ -433,7 +475,7 @@ namespace evernote {
 			GUID guid, std::string key);
 		int setNoteApplicationDataEntry (std::string authenticationToken,
 			GUID guid, std::string key, std::string value);
-		int unsetNoteApplicationDataEntry (std::authenticationToken,
+		int unsetNoteApplicationDataEntry (std::string authenticationToken,
 			GUID guid, std::string key);
 		std::string getNoteContent (std::string authenticationToken,
 			GUID guid);
@@ -441,18 +483,18 @@ namespace evernote {
 			GUID guid, bool noteOnly, bool tokenizeForIndexing);
 		std::string getResourceSearchText (std::string authenticationToken,
 			GUID guid);
-		vector<std::string>* getNoteTagNames (std::string authenticationToken,
+		std::vector<std::string>* getNoteTagNames (std::string authenticationToken,
 			GUID guid);
 		Note* createNote (std::string authenticationToken, Note* note);
 		Note* updateNote (std::string authenticationToken, Note* note);
 		int deleteNote (std::string authenticationToken, GUID guid);
 		int expungeNote (std::string authenticationToken, GUID guid);
 		int expungeNotes (std::string authenticationToken, 
-			vector<int>* noteGuids);
-		int expungeInactiveNotes (std::authenticationToken);
+			std::vector<int>* noteGuids);
+		int expungeInactiveNotes (std::string authenticationToken);
 		Note* copyNote (std::string authenticationToken, GUID noteGuid,
 			GUID toNotebookGuid);
-		vector<NoteVersionId*>* listNoteVersions (std::string authenticationToken,
+		std::vector<NoteVersionId*>* listNoteVersions (std::string authenticationToken,
 			GUID noteGuid);
 		Note* getNoteVersion (std::string authenticationToken, GUID noteGuid,
 			int updateSequenceNum, bool withResourcesData, 
@@ -488,15 +530,15 @@ namespace evernote {
 		int setSharedNotebookRecipientSettings (std::string authenticationToken,
 			long sharedNotebookId, SharedNotebookRecipientSettings* recipientSettings);
 		int sendMessageToSharedNotebookMembers (std::string authenticationToken,
-			GUID notebookGuid, std::string messageText, vector<std::string> recipients);
-		vector<SharedNotebook*>* listSharedNotebooks (std::string authenticationToken);
+			GUID notebookGuid, std::string messageText, std::vector<std::string> recipients);
+		std::vector<SharedNotebook*>* listSharedNotebooks (std::string authenticationToken);
 		int expungeSharedNotebooks (std::string authenticationToken, 
-			vector<long>* sharedNotebookIds);
+			std::vector<long>* sharedNotebookIds);
 		LinkedNotebook* createLinkedNotebook (std::string authenticationToken,
 			LinkedNotebook* linkedNotebook);
 		int updateLinkedNotebook (std::string authenticationToken,
 			LinkedNotebook* linkedNotebook);
-		vector<LinkedNotebook*> listLinkedNotebooks (std::string authenticationToken);
+		std::vector<LinkedNotebook*> listLinkedNotebooks (std::string authenticationToken);
 		int expungeLinkedNotebook (std::string authenticationToken,
 			GUID guid);
 		AuthenticateResult* authenticateToSharedNotebook (std::string shareKey,
@@ -515,9 +557,9 @@ namespace evernote {
 	/* USERSTORE TYPES */
 	class AuthenticationResult {
 	public:
-		Timestamp currentTime;
+		Timestamp* currentTime;
 		std::string authenticationToken;
-		Timestamp expiration;
+		Timestamp* expiration;
 		User* ser;
 		PublicUserInfo* publicUserInfo;
 		std::string noteStoreUrl;
@@ -546,17 +588,17 @@ namespace evernote {
 	class BootstrapProfile {
 	public:
 		std::string name;
-		BoostrapSettings* settings;
+		BootstrapSettings* settings;
 	};
 
 	class BootstrapInfo {
 	public:
-		vector<Bootstrap*> profiles;
+		std::vector<BootstrapProfile*> profiles;
 	};
 	
 	class PublicUserInfo {
 	public:
-		UserId userId;
+		UserID* userId;
 		std::string shardId;
 		PrivilegeLevel privilege;
 		std::string username;
@@ -565,8 +607,14 @@ namespace evernote {
 	};
 
 	class UserStore {
-		bool checkVersion (std::string clientName, int edamVersionMajor = 1,
-			int edamVersionMinor = 15);
+	private:
+		evernote::edam::UserStoreClient* userStoreClient;
+	public:
+		UserStore (std::string evernoteUrl, int port, std::string parameterThree,
+			std::string authenticationToken);
+
+		bool checkVersion (std::string clientName, short edamVersionMajor = 1,
+			short edamVersionMinor = 15);
 		BootstrapInfo* getBootstrapInfo (std::string locale);
 		AuthenticateResult* authenticate (std::string username,
 			std::string password, std::string consumerKey,
@@ -576,12 +624,12 @@ namespace evernote {
 			std::string consumerSecret, std::string deviceIdentifier,
 			std::string deviceDescription, bool supportsTwoFactor);
 		AuthenticationResult* completeTwoFactorAuthentication (std::string 
-			authenticationToken, std::oneTimeCode, std::string deviceIdentifier,
+			authenticationToken, std::string oneTimeCode, std::string deviceIdentifier,
 			std::string deviceDescription);
 		void revokeLongSession (std::string authenticationToken);
 		AuthenticationResult* authenticateToBusiness (std::string authenticationToken);
 		AuthenticationResult* refreshAuthentication (std::string authenticationToken);
-		User* getUser (std::String authenticationToken);
+		User* getUser (std::string authenticationToken);
 		PublicUserInfo* getPublicUserInfo (std::string username);
 		PremiumInfo* getPremiumInfo (std::string authenticationToken);
 		std::string getNoteStoreUrl (std::string authenticationToken);
