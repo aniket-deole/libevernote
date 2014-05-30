@@ -1,6 +1,24 @@
+
+#include <iostream>
+#include <sstream>
+#include <cstdlib>
+#include <vector>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <openssl/md5.h>
 #include <vector>
 #include <map>
+#include <protocol/TBinaryProtocol.h>
+#include <transport/THttpClient.h>
+#include <transport/TSSLSocket.h>
 #include <set>
+
+
+#include "rapidxml_print.hpp"
+#include "rapidxml.hpp"
+
+#include "evernote-sdk/UserStore.h"
+#include "evernote-sdk/NoteStore.h"
 
 
 namespace evernote {
@@ -611,6 +629,7 @@ namespace evernote {
 	private:
 		evernote::edam::UserStoreClient* userStore;
 		boost::shared_ptr<apache::thrift::transport::THttpClient> auth_http;
+		std::string evernoteUrl; int port; std::string parameterThree;
 	public:
 		UserStore (std::string evernoteUrl, int port, std::string parameterThree,
 			std::string authenticationToken);

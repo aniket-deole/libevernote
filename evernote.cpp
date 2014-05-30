@@ -13,23 +13,9 @@ You should have received a copy of the GNU General Public License along
 with this program.  If not, see <http://www.gnu.org/licenses/>.
 ***/
 
-#include <iostream>
-#include <sstream>
-#include <cstdlib>
-#include <vector>
 #include <protocol/TBinaryProtocol.h>
 #include <transport/THttpClient.h>
 #include <transport/TSSLSocket.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <openssl/md5.h>
-
-#include "rapidxml_print.hpp"
-#include "rapidxml.hpp"
-
-#include "UserStore.h"
-#include "NoteStore.h"
-
 #include "evernote.hh"
 
 void print_md5_sum(unsigned char* md) {
@@ -39,14 +25,24 @@ void print_md5_sum(unsigned char* md) {
     }
 }
 
-evernote::UserStore::UserStore (std::string evernoteUrl, int port, std::string parameterThree,
+evernote::UserStore::UserStore (std::string eU, int p, std::string pT,
             std::string authenticationToken) {
+
+    evernoteUrl = eU;
+    port = p;
+    parameterThree = pT;
+
     auth_http = boost::shared_ptr<apache::thrift::transport::THttpClient>(
         new apache::thrift::transport::THttpClient(evernoteUrl, port, parameterThree));
     auth_http->open();
     boost::shared_ptr<apache::thrift::protocol::TBinaryProtocol> userStoreProt(
         new apache::thrift::protocol::TBinaryProtocol(auth_http));
     userStore = new evernote::edam::UserStoreClient (userStoreProt, userStoreProt);
+    /**
+     * We have the userStore working.
+     */
+    delete userStore;
+    auth_http->close ();
 }
 
 evernote::UserStore::~UserStore () {
@@ -54,8 +50,16 @@ evernote::UserStore::~UserStore () {
 }
 
 std::string evernote::UserStore::getNoteStoreUrl (std::string authToken) {
+    auth_http = boost::shared_ptr<apache::thrift::transport::THttpClient>(
+        new apache::thrift::transport::THttpClient(evernoteUrl, port, parameterThree));
+    auth_http->open();
+    boost::shared_ptr<apache::thrift::protocol::TBinaryProtocol> userStoreProt(
+        new apache::thrift::protocol::TBinaryProtocol(auth_http));
+    userStore = new evernote::edam::UserStoreClient (userStoreProt, userStoreProt);
     std::string noteStoreUrl;
     userStore->getNoteStoreUrl (noteStoreUrl, authToken);
+    auth_http->close ();
+    delete userStore;
     return noteStoreUrl;
 }
 
@@ -80,25 +84,4 @@ evernote::NoteStore::NoteStore (std::string noteStoreUrl) {
 
 evernote::NoteStore::~NoteStore () {
     userStoreHttpClient->close ();    
-}
-
-
-/*
- * Sample program that gets notes from Evernote's dev server account.
- */
-int main () {
-    /*
-     * AuthToken would be recieved after oauth. 
-     * Right now we are using the one provided by evernote for accessing 
-     * sandbox.evernote.com
-     */
-    std::string authToken = "S=s1:U=7558a:E=14aae5ecd73:C=14356ada175:P=1cd:A=en-devtoken:V=2:H=905a30846fdad07b83592ff73da7a7c0";
-    
-    evernote::UserStore* userStore = new evernote::UserStore ("sandbox.evernote.com", 80, "/edam/user", authToken);
-    evernote::NoteStore* noteStore = new evernote::NoteStore (userStore->getNoteStoreUrl (authToken));
-
-    delete noteStore;
-    delete userStore;
-
-    return 0;
 }

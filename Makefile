@@ -1,5 +1,5 @@
 CC=g++
-CFLAGS=-c -fPIC -Ievernote-sdk/thrift  -I/usr/include/ `pkg-config --cflags --libs thrift`
+CFLAGS=-c -g -fPIC -Ievernote-sdk/thrift  -I/usr/include/ `pkg-config --cflags --libs thrift`
 LDFLAGS=`pkg-config --cflags --libs thrift`
 
 SRCS= \
@@ -22,7 +22,7 @@ EXECUTABLE=libevernote.so
 all: $(SRCS) $(EXECUTABLE)
 	
 $(EXECUTABLE): $(OBJECTS) 
-	$(CC) -shared $(LDFLAGS) $(OBJECTS) -o $@
+	$(CC) -shared  $(OBJECTS) -o $@ $(LDFLAGS)
 
 .cpp.o:																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																													
 	$(CC) $(CFLAGS) $< -o $@
@@ -31,7 +31,7 @@ clean:
 	rm -rf *.o *.so *.out evernotecppsdktest
 
 test: all
-	$(CC) -g evernotedataprovider.cc -Ievernote-sdk -Ievernote-sdk/thrift `pkg-config --cflags --libs thrift` -L`pwd` -levernote -o evernotecppsdktest && export LD_LIBRARY_PATH=`pwd`:$LD_LIBRARY_PATH && ./evernotecppsdktest
-
-testnew: all
 	$(CC) -g example.cc -Ievernote-sdk -Ievernote-sdk/thrift `pkg-config --cflags --libs thrift` -L`pwd` -levernote -o evernotecppsdktest && export LD_LIBRARY_PATH=`pwd`:$LD_LIBRARY_PATH && ./evernotecppsdktest
+
+debug: all
+	$(CC) -g example.cc -Ievernote-sdk -Ievernote-sdk/thrift `pkg-config --cflags --libs thrift` -L`pwd` -levernote -o evernotecppsdktest && export LD_LIBRARY_PATH=`pwd`:$LD_LIBRARY_PATH && ddd ./evernotecppsdktest
