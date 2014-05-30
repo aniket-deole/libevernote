@@ -13,7 +13,8 @@ SRCS= \
     evernote-sdk/NoteStore_constants.cpp \
     evernote-sdk/NoteStore_types.cpp \
     evernote-sdk/Types_types.cpp \
-    evernote-sdk/UserStore.cpp
+    evernote-sdk/UserStore.cpp \
+    evernote.cpp
  
 OBJECTS=$(SRCS:.cpp=.o)
 EXECUTABLE=libevernote.so
@@ -33,4 +34,4 @@ test: all
 	$(CC) -g evernotedataprovider.cc -Ievernote-sdk -Ievernote-sdk/thrift `pkg-config --cflags --libs thrift` -L`pwd` -levernote -o evernotecppsdktest && export LD_LIBRARY_PATH=`pwd`:$LD_LIBRARY_PATH && ./evernotecppsdktest
 
 testnew: all
-	$(CC) -g evernote.cc -Ievernote-sdk -Ievernote-sdk/thrift `pkg-config --cflags --libs thrift` -L`pwd` -levernote -o evernotecppsdktest && export LD_LIBRARY_PATH=`pwd`:$LD_LIBRARY_PATH && ./evernotecppsdktest
+	$(CC) -g example.cc -Ievernote-sdk -Ievernote-sdk/thrift `pkg-config --cflags --libs thrift` -L`pwd` -levernote -o evernotecppsdktest && export LD_LIBRARY_PATH=`pwd`:$LD_LIBRARY_PATH && ./evernotecppsdktest
