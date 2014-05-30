@@ -41,8 +41,6 @@ evernote::UserStore::UserStore (std::string eU, int p, std::string pT,
     /**
      * We have the userStore working.
      */
-    delete userStore;
-    auth_http->close ();
 }
 
 evernote::UserStore::~UserStore () {
@@ -50,17 +48,25 @@ evernote::UserStore::~UserStore () {
 }
 
 std::string evernote::UserStore::getNoteStoreUrl (std::string authToken) {
-    auth_http = boost::shared_ptr<apache::thrift::transport::THttpClient>(
-        new apache::thrift::transport::THttpClient(evernoteUrl, port, parameterThree));
-    auth_http->open();
-    boost::shared_ptr<apache::thrift::protocol::TBinaryProtocol> userStoreProt(
-        new apache::thrift::protocol::TBinaryProtocol(auth_http));
-    userStore = new evernote::edam::UserStoreClient (userStoreProt, userStoreProt);
-    std::string noteStoreUrl;
-    userStore->getNoteStoreUrl (noteStoreUrl, authToken);
-    auth_http->close ();
-    delete userStore;
-    return noteStoreUrl;
+    try {        
+        std::string noteStoreUrl;
+        userStore->getNoteStoreUrl (noteStoreUrl, authToken);
+        return noteStoreUrl;
+    } catch (apache::thrift::transport::TTransportException e) {
+        auth_http->close ();
+        delete userStore;
+        auth_http = boost::shared_ptr<apache::thrift::transport::THttpClient>(
+            new apache::thrift::transport::THttpClient(evernoteUrl, port, parameterThree));
+        auth_http->open();
+        boost::shared_ptr<apache::thrift::protocol::TBinaryProtocol> userStoreProt(
+            new apache::thrift::protocol::TBinaryProtocol(auth_http));
+        userStore = new evernote::edam::UserStoreClient (userStoreProt, userStoreProt);
+        std::string noteStoreUrl;
+        userStore->getNoteStoreUrl (noteStoreUrl, authToken);
+        auth_http->close ();
+        delete userStore;
+        return noteStoreUrl;
+    }
 }
 
 evernote::NoteStore::NoteStore (std::string noteStoreUrl) {
