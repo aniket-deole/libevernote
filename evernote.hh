@@ -116,6 +116,7 @@ namespace evernote {
 	class GUID {
 	public:
 		std::string guid;
+		GUID (std::string g);
 	};
 
 	class LazyMap {
@@ -131,7 +132,7 @@ namespace evernote {
 		std::string shardId;
 		std::string shareKey;
 		std::string uri;
-		GUID guid;
+		GUID* guid;
 		int updateSequenceNum;
 		std::string noteStoreUrl;
 		std::string webApiUrlPrefix;
@@ -141,7 +142,7 @@ namespace evernote {
 
 	class Note {
 	public:
-		GUID guid;
+		GUID* guid;
 		std::string title;
 		std::string content;
 		std::string contentHash;
@@ -185,7 +186,7 @@ namespace evernote {
 
 	class Notebook {
 	public:
-		GUID guid;
+		GUID* guid;
 		std::string name;
 		int updateSequenceNum;
 		bool defaultNotebook;
@@ -194,16 +195,17 @@ namespace evernote {
 		Publishing* publishing;
 		bool published;
 		std::string stack;
-		std::vector<long> sharedNotebookIds;
 		std::vector<SharedNotebook*> sharedNotebooks;
 		BusinessNotebook* businessNotebook;
 		User* contact;
 		NotebookRestrictions* restrictions;
+
+		Notebook (evernote::edam::Notebook);
 	};
 
 	class NotebookDescriptor {
 	public:
-		GUID guid;
+		GUID* guid;
 		std::string notebookDisplayName;
 		std::string contactName;
 		bool hasShareNotebook;
@@ -259,6 +261,7 @@ namespace evernote {
 		NoteSortOrder* order;
 		bool ascending;
 		std::string publicDescription;
+		Publishing (evernote::edam::Publishing p);
 	};
 
 	class QueryFormat {};
@@ -267,8 +270,8 @@ namespace evernote {
 
 	class Resource {
 	public:
-		GUID guid;
-		GUID noteGuid;
+		GUID* guid;
+		GUID* noteGuid;
 		Data* data;
 		std::string mime;
 		short width;
@@ -299,7 +302,7 @@ namespace evernote {
 
 	class SavedSearch {
 	public:
-		GUID guid;
+		GUID* guid;
 		std::string name;
 		std::string query;
 		QueryFormat format;
@@ -338,15 +341,16 @@ namespace evernote {
 
 	class Tag {
 	public:
-		GUID guid;
+		GUID* guid;
 		std::string name;
-		GUID parentGuid;
+		GUID* parentGuid;
 		int updateSequenceNum;
 	};
 
 	class Timestamp {
 	public:
 		long timestamp;
+		Timestamp (long t);
 	};
 
 	class User {
@@ -409,35 +413,166 @@ namespace evernote {
 	};
 
 	/** NOTESTORE TYPES */
-	class ClientUsageMetrics {};
+	class ClientUsageMetrics {
+	public:
+		int sessions;
+	};
 
-	class NoteCollectionCounts {};
+	class NoteCollectionCounts {
+	public:
+		std::map<GUID*, int> notebookCounts;
+		std::map<GUID*, int> tagCounts;
+		int trashCount;
+	};
 
-	class NoteEmailParameters {};
+	class NoteEmailParameters {
+	public:
+		std::string guid;
+		Note* note;
+		std::vector<std::string> toAddresses;
+		std::vector<std::string> ccAddresses;
+		std::string subject;
+		std::string message;
+	};
 
-	class NoteFilter {};
+	class NoteFilter {
+	public:
+		int order;
+		bool ascending;
+		std::string words;
+		GUID* notebookGuid;
+		vector<GUID*> tagGuids;
+		std::string timeZone;
+		bool inactive;
+		std::string emphasized;
+	};
 
-	class NoteList {};
+	class NoteList {
+	public:
+		int startIndex;
+		int totalNotes;
+		vector<Note*> notes;
+		vector<std::string> stoppedWords;
+		vector<std::string> searchedWords;
+		int updateCount;
+	};
 
-	class NoteMetadata {};
+	class NoteMetadata {
+	public:
+		GUID* guid;
+		std::string title;
+		int contentLength;
+		Timestamp* created;
+		Timestamp* updated;
+		Timestamp* deleted;
+		int updateSequenceNum;
+		std::string notebookGuid;
+		std::vector<GUID*> tagGuids;
+		NoteAttributes* attributes;
+		std::string largestResourceMime;
+		int largestResourceSize;
+	};
 
-	class NoteVersionId {};
+	class NoteVersionId {
+	public:
+		int updateSequenceNum;
+		Timestamp* updated;
+		Timestamp* saved;
+		std::string title;
+	};
 
-	class NotesMetadataList {};
+	class NotesMetadataList {
+	public:
+		int startIndex;
+		int totalNotes;
+		std::vector<NoteMetadata*> notes;
+		std::vector<std::string> stoppedWords;
+		std::vector<std::string> searchedWords;
+		int updateCount;
+	};
 
-	class NotesMetadataResultSpec {};
+	class NotesMetadataResultSpec {
+	public:
+		bool includeTitle;
+		bool includeContentLength;
+		bool includeCreated;
+		bool includeUpdated;
+		bool includeDeleted;
+		bool includeUpdateSequenceNum;
+		bool includeNotebookGuid;
+		bool includeTagGuids;
+		bool includeAttributes;
+		bool includeLargestResourceMime;
+		bool includeLargestResourceSize;
+	};
 
-	class RelatedQuery {};
+	class RelatedQuery {
+	public:
+		std::string noteGuid;
+		std::string plainText;
+		NoteFilter* filter;
+		std::string referenceUri;
+	};
 
-	class RelatedResult {};
+	class RelatedResult {
+	public:
+		std::vector<Note*> notes;
+		std::vector<Notebook*> notebooks;
+		std::vector<Tag*> tags;
+		std::vector<NotebookDescriptor*> containingNotebooks;
+	};
 
-	class RelatedResutlSpec {};
+	class RelatedResutlSpec {
+	public:
+		int maxNotes;
+		int maxNotebooks;
+		int maxTags;
+		bool writableNotebooksOnly;
+		bool includeContainingNotebooks;
+	};
 
-	class SyncChunk {};
+	class SyncChunk {
+	public:
+		Timestamp* currentTime;
+		int chunkHighUSN;
+		int updateCount;
+		std::vector<Note*> notes;
+		std::vector<Notebook*> notebooks;
+		std::vector<Tag*> tags;
+		std::vector<SavedSearch*> searches;
+		std::vector<Resource*> resources;
+		std::vector<GUID*> expungedNotes;
+		std::vector<GUID*> expungedNotebooks;
+		std::vector<GUID*> expungedTags;
+		std::vector<GUID*> expungedSearches;
+		std::vector<LinkedNotebook*> linkedNotebooks;
+		std::vector<GUID*> expungedLinkedNotebooks; 
+	};
 
-	class SyncChunlFilter {};
+	class SyncChunlFilter {
+	public:
+		bool includeNotes;
+		bool includeNoteResources;
+		bool includeNoteAttributes;
+		bool includeNotebooks;
+		bool includeTags;
+		bool includeSearches;
+		bool includeResources;
+		bool includeLinkedNotebooks;
+		bool includeExpunged;
+		bool includeNoteApplicationDataFullMap;
+		bool includeResourceApplicationDataFullMap;
+		bool includeNoteResourceApplicationDataFullMap;
+		std::string requireNoteContentClass;
+	};
 
-	class SyncState {};
+	class SyncState {
+	public:
+		Timestamp* currentTime;
+		Timestamp* fullSyncBefore;
+		int updateCount;
+		long uploaded;
+	};
 
 	class NoteStore {
 	private:
@@ -457,90 +592,90 @@ namespace evernote {
 			LinkedNotebook* linkedNotebook, int afterUSN, int maxEntries,
 			bool fullSyncOnly);
 		std::vector<Notebook*>* listNotebooks(std::string authenticationToken);
-		Notebook* getNotebook (std::string authenticationToken, GUID guid);
+		Notebook* getNotebook (std::string authenticationToken, GUID* guid);
 		Notebook* getDefaultNotebook (std::string authenticationToken);
 		Notebook* createNotebook (std::string authenticationToken,
 			Notebook* notebook);
 		int updateNotebook (std::string authenticationToken, Notebook* notebook);
-		int expungeNotebook (std::string authenticationToken, GUID guid);
+		int expungeNotebook (std::string authenticationToken, GUID* guid);
 		std::vector<Tag*>* listTags (std::string authenticationToken);
 		std::vector<Tag*>* listTagsByNotebook (std::string authenticationToken,
-			GUID notebookGuid);
-		Tag* getTag (std::string authenticationToken, GUID guid);
+			GUID* notebookGuid);
+		Tag* getTag (std::string authenticationToken, GUID* guid);
 		Tag* createTag (std::string authenticationToken, Tag* tag);
 		int updateTag (std::string authenticationToken, Tag* tag);
-		void untagAll (std::string authenticationToken, GUID guid);
-		int expungeTag (std::string authenticationToken, GUID guid);
+		void untagAll (std::string authenticationToken, GUID* guid);
+		int expungeTag (std::string authenticationToken, GUID* guid);
 		std::vector<SavedSearch*>* listSearches (std::string authenticationToken);
-		SavedSearch* getSearch (std::string authenticationToken, GUID guid);
+		SavedSearch* getSearch (std::string authenticationToken, GUID* guid);
 		SavedSearch* createSearch (std::string authenticationToken, 
 			SavedSearch* search);
 		int updateSearch (std::string authenticationToken, 
 			SavedSearch* search);
-		int expungeSearch (std::string authenticationToken, GUID guid);
+		int expungeSearch (std::string authenticationToken, GUID* guid);
 		int findNoteOffset (std::string authenticationToken, NoteFilter* filter,
-			GUID guid);
+			GUID* guid);
 		NotesMetadataList* findNotesMetadata (std::string authenticationToken,
 			NoteFilter* filter, int offset, int maxNotes,
 			NotesMetadataResultSpec* resultSpec);
 		NoteCollectionCounts* findNoteCounts (std::string authenticationToken,
 			NoteFilter* filter, bool withTrash);
 		Note* getNote (std::string authenticationToken,
-			GUID guid, bool withContent, bool withResourcesData,
+			GUID* guid, bool withContent, bool withResourcesData,
 			bool withResourcesRecognition, bool withResourcesAlternateData);
 		LazyMap* getNoteApplicationData (std::string authenticationToken,
-			GUID guid);
+			GUID* guid);
 		std::string getNoteAPplicationDataEntry (std::string authenticationToken,
-			GUID guid, std::string key);
+			GUID* guid, std::string key);
 		int setNoteApplicationDataEntry (std::string authenticationToken,
-			GUID guid, std::string key, std::string value);
+			GUID* guid, std::string key, std::string value);
 		int unsetNoteApplicationDataEntry (std::string authenticationToken,
-			GUID guid, std::string key);
+			GUID* guid, std::string key);
 		std::string getNoteContent (std::string authenticationToken,
-			GUID guid);
+			GUID* guid);
 		std::string getNoteSearchText (std::string authenticationToken,
-			GUID guid, bool noteOnly, bool tokenizeForIndexing);
+			GUID* guid, bool noteOnly, bool tokenizeForIndexing);
 		std::string getResourceSearchText (std::string authenticationToken,
-			GUID guid);
+			GUID* guid);
 		std::vector<std::string>* getNoteTagNames (std::string authenticationToken,
-			GUID guid);
+			GUID* guid);
 		Note* createNote (std::string authenticationToken, Note* note);
 		Note* updateNote (std::string authenticationToken, Note* note);
-		int deleteNote (std::string authenticationToken, GUID guid);
-		int expungeNote (std::string authenticationToken, GUID guid);
+		int deleteNote (std::string authenticationToken, GUID* guid);
+		int expungeNote (std::string authenticationToken, GUID* guid);
 		int expungeNotes (std::string authenticationToken, 
 			std::vector<int>* noteGuids);
 		int expungeInactiveNotes (std::string authenticationToken);
-		Note* copyNote (std::string authenticationToken, GUID noteGuid,
-			GUID toNotebookGuid);
+		Note* copyNote (std::string authenticationToken, GUID* noteGuid,
+			GUID* toNotebookGuid);
 		std::vector<NoteVersionId*>* listNoteVersions (std::string authenticationToken,
-			GUID noteGuid);
-		Note* getNoteVersion (std::string authenticationToken, GUID noteGuid,
+			GUID* noteGuid);
+		Note* getNoteVersion (std::string authenticationToken, GUID* noteGuid,
 			int updateSequenceNum, bool withResourcesData, 
 			bool withResourcesRecognition, bool withResourcesAlternateData);
-		Resource* getResource (std::string authenticationToken, GUID guid,
+		Resource* getResource (std::string authenticationToken, GUID* guid,
 			bool withData, bool withRecognition, bool withAttributes,
 			bool withAlternateData);
 		LazyMap* getResouceApplicationData (std::string authenticationToken,
-			GUID guid);
+			GUID* guid);
 		std::string getResourceApplicationDataEntry (std::string authenticationToken,
-			GUID guid, std::string key);
+			GUID* guid, std::string key);
 		int setResourceApplicationDataEntry (std::string authenticationToken,
-			GUID guid, std::string key, std::string value);
+			GUID* guid, std::string key, std::string value);
 		int unsetResourceApplicationDataEntry (std::string authenticationToken,
-			GUID guid, std::string key);
+			GUID* guid, std::string key);
 		int updateResource (std::string authenticationToken, Resource* resource);
 		std::string getResourceData (std::string authenticationToken,
-			GUID guid);
+			GUID* guid);
 		Resource* getResourceByHash (std::string authenticationToken,
-			GUID noteGuid, std::string contentHash, bool withdata,
+			GUID* noteGuid, std::string contentHash, bool withdata,
 			bool withRecognition, bool withAlternateData);
 		std::string getResourceRecognition (std::string authenticationToken,
-			GUID guid);
+			GUID* guid);
 		std::string getResourceAlternateData (std::string authenticationToken,
-			GUID guid);
+			GUID* guid);
 		ResourceAttributes* getResourceAttributes (std::string authenticationToken,
-			GUID guid);
+			GUID* guid);
 		Notebook* getPublicNotebook (UserID* userId, std::string publicUri);
 		SharedNotebook* createSharedNotebook (std::string authenticationToken,
 			SharedNotebook* sharedNotebook);
@@ -549,7 +684,7 @@ namespace evernote {
 		int setSharedNotebookRecipientSettings (std::string authenticationToken,
 			long sharedNotebookId, SharedNotebookRecipientSettings* recipientSettings);
 		int sendMessageToSharedNotebookMembers (std::string authenticationToken,
-			GUID notebookGuid, std::string messageText, std::vector<std::string> recipients);
+			GUID* notebookGuid, std::string messageText, std::vector<std::string> recipients);
 		std::vector<SharedNotebook*>* listSharedNotebooks (std::string authenticationToken);
 		int expungeSharedNotebooks (std::string authenticationToken, 
 			std::vector<long>* sharedNotebookIds);
@@ -559,14 +694,14 @@ namespace evernote {
 			LinkedNotebook* linkedNotebook);
 		std::vector<LinkedNotebook*> listLinkedNotebooks (std::string authenticationToken);
 		int expungeLinkedNotebook (std::string authenticationToken,
-			GUID guid);
+			GUID* guid);
 		AuthenticateResult* authenticateToSharedNotebook (std::string shareKey,
 			std::string authenticationToken);
 		SharedNotebook* getSharedNotebookByAuth (std::string authenticationToken);
 		void emailNote (std::string authenticationToken, NoteEmailParameters* parameters);
 		std::string shareNote (std::string authenticationToken, 
-			GUID guid);
-		void stopSharingNote (std::string authenticationToken, GUID guid);
+			GUID* guid);
+		void stopSharingNote (std::string authenticationToken, GUID* guid);
 		AuthenticateResult* authenticateToSharedNote (std::string guid,
 			std::string noteKey, std::string authenticationToken);
 		RelatedResult* findRelated (std::string authenticationToken, 

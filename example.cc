@@ -12,7 +12,7 @@ PURPOSE.  See the GNU General Public License for more details.
 You should have received a copy of the GNU General Public License along
 with this program.  If not, see <http://www.gnu.org/licenses/>.
 ***/
-
+#include <iostream>
 #include "evernote.hh"
 
 /*
@@ -29,7 +29,38 @@ int main () {
     evernote::UserStore* userStore = new evernote::UserStore ("sandbox.evernote.com", 80, "/edam/user", authToken);
     evernote::NoteStore* noteStore = new evernote::NoteStore (userStore->getNoteStoreUrl (authToken));
 
-    std::cout << userStore->getNoteStoreUrl (authToken) << std::endl;   
+    std::cout << "*. List all notebooks\n";
+    std::cout << "----------------------------------------------------------------\n";
+    std::vector<evernote::Notebook*>* notebookList = noteStore->listNotebooks (authToken);
+
+    for (int i = 0; i < notebookList->size (); i++) {
+        std::cout << notebookList->at (i)->stack << ":" << notebookList->at (i)->name << std::endl;
+    }
+
+    std::cout << "----------------------------------------------------------------\n";
+    std::cout << "----------------------------------------------------------------\n";
+
+    std::cout << "*. List all notes.\n";
+    std::cout << "----------------------------------------------------------------\n";
+
+    std::cout << "----------------------------------------------------------------\n";
+    std::cout << "----------------------------------------------------------------\n";
+
+    std::cout << "*. List all notes from Notebook\n";
+    std::cout << "----------------------------------------------------------------\n";
+
+
+    std::cout << "----------------------------------------------------------------\n";
+    std::cout << "----------------------------------------------------------------\n";
+
+    std::cout << "*. Find Note.\n";
+    std::cout << "----------------------------------------------------------------\n";
+    std::cout << "*. Create Note.\n";
+    std::cout << "----------------------------------------------------------------\n";
+    std::cout << "*. Create Notebook.\n";
+    std::cout << "----------------------------------------------------------------\n";
+    std::cout << "*. Exit" << std::endl;
+    std::cout.flush ();
 
     delete noteStore;
     delete userStore;
