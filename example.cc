@@ -40,10 +40,11 @@ int main () {
     std::cout << "----------------------------------------------------------------\n";
     std::cout << "----------------------------------------------------------------\n";
 
-    std::cout << "*. List all notes.\n";
+    std::cout << "*. List all notes titles.\n";
     std::cout << "----------------------------------------------------------------\n";
     evernote::NoteFilter* nf = new evernote::NoteFilter ();
     evernote::NotesMetadataResultSpec* nmrs = new evernote::NotesMetadataResultSpec ();
+    nmrs->includeTitle = true;
     evernote::NotesMetadataList* nml = noteStore->findNotesMetadata (authToken, nf, 0, 20, nmrs);
     std::cout << nml->totalNotes << std::endl;
     for (int i = 0; i < nml->notes.size (); i++) {

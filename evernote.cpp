@@ -161,17 +161,45 @@ evernote::edam::NoteFilter* evernote::NoteFilter::getEdamObject () {
     return eNoteFilter;
 }
 
+        bool includeTitle;
+        bool includeContentLength;
+        bool includeCreated;
+        bool includeUpdated;
+        bool includeDeleted;
+        bool includeUpdateSequenceNum;
+        bool includeNotebookGuid;
+        bool includeTagGuids;
+        bool includeAttributes;
+        bool includeLargestResourceMime;
+        bool includeLargestResourceSize;
+
+
 evernote::edam::NotesMetadataResultSpec* evernote::NotesMetadataResultSpec::getEdamObject () {
-    evernote::edam::NotesMetadataResultSpec* nmrs = new evernote::edam::NotesMetadataResultSpec ();
-    nmrs->includeTitle = true;
-    nmrs->__isset.includeTitle = true;
-    nmrs->includeCreated = true;
-    nmrs->__isset.includeCreated = true;
-    nmrs->includeUpdated = true;
-    nmrs->__isset.includeUpdated = true;
-    nmrs->includeNotebookGuid = true;
-    nmrs->__isset.includeNotebookGuid = true;
-    return nmrs;
+    evernote::edam::NotesMetadataResultSpec* enmrs = new evernote::edam::NotesMetadataResultSpec ();
+    enmrs->includeTitle = includeTitle;
+    enmrs->includeContentLength = includeContentLength;
+    enmrs->includeCreated = includeCreated;
+    enmrs->includeUpdated = includeUpdated;
+    enmrs->includeDeleted = includeDeleted;
+    enmrs->includeUpdateSequenceNum = includeUpdateSequenceNum;
+    enmrs->includeNotebookGuid = includeNotebookGuid;
+    enmrs->includeTagGuids = includeTagGuids;
+    enmrs->includeAttributes = includeAttributes;
+    enmrs->includeLargestResourceMime = includeLargestResourceMime;
+    enmrs->includeLargestResourceSize = includeLargestResourceSize;
+
+    enmrs->__isset.includeTitle = includeTitle;
+    enmrs->__isset.includeContentLength = includeContentLength;
+    enmrs->__isset.includeCreated = includeCreated;
+    enmrs->__isset.includeUpdated = includeUpdated;
+    enmrs->__isset.includeDeleted = includeDeleted;
+    enmrs->__isset.includeUpdateSequenceNum = includeUpdateSequenceNum;
+    enmrs->__isset.includeNotebookGuid = includeNotebookGuid;
+    enmrs->__isset.includeTagGuids = includeTagGuids;
+    enmrs->__isset.includeAttributes = includeAttributes;
+    enmrs->__isset.includeLargestResourceMime = includeLargestResourceMime;
+    enmrs->__isset.includeLargestResourceSize = includeLargestResourceSize;
+    return enmrs;
 }
 
 evernote::NotesMetadataList::NotesMetadataList (evernote::edam::NotesMetadataList* enml) {
@@ -195,10 +223,38 @@ evernote::NoteMetadata::NoteMetadata (const evernote::edam::NoteMetadata* enm) {
     deleted = new Timestamp (enm->deleted);
     updateSequenceNum = enm->updateSequenceNum;
     notebookGuid = enm->notebookGuid;
-//    std::vector<GUID*> tagGuids;
-//    NoteAttributes* attributes;
+    std::vector<GUID*> tagGuids;
+    tagGuids.reserve (enm->tagGuids.size ());
+    for (int i = 0; i < tagGuids.size (); i++) {
+        tagGuids.push_back (new GUID (enm->tagGuids[i]));
+    }
+    attributes = new NoteAttributes (&(enm->attributes));
     largestResourceMime = enm->largestResourceMime;
     largestResourceSize = enm->largestResourceSize;
+}
+
+evernote::NoteAttributes::NoteAttributes (const evernote::edam::NoteAttributes* ena) {
+    Timestamp* subjectDate = new Timestamp (ena->subjectDate);
+    double latitude = ena->latitude;
+    double longitude = ena->longitude;
+    double altitude = ena->altitude;
+    std::string author = ena->author;
+    std::string source = ena->source;
+    std::string sourceURL = ena->sourceURL;
+    std::string sourceApplication = ena->sourceApplication;
+    Timestamp* shareDate = new Timestamp (ena->shareDate);
+    long reminderOrder = ena->reminderOrder;
+    Timestamp* reminderDoneTime = new Timestamp (ena->reminderDoneTime);
+    Timestamp* reminderTime = new Timestamp (ena->reminderTime);
+    std::string placeName = ena->placeName;
+    std::string contentClass = ena->contentClass;
+    std::string lastEditedBy = ena->lastEditedBy;
+/*    
+    std::map<std::string, std::string> classifications;
+    LazyMap* applicationData = ena->;
+    UserID* creatorId;
+    UserID* lastEditorId;
+*/
 }
 
 evernote::NotesMetadataList* evernote::NoteStore::findNotesMetadata (std::string authenticationToken,
@@ -208,7 +264,7 @@ evernote::NotesMetadataList* evernote::NoteStore::findNotesMetadata (std::string
     evernote::edam::NotesMetadataList notesMetadataList;
     evernote::edam::NoteFilter* eNoteFilter = filter->getEdamObject ();
     evernote::edam::NotesMetadataResultSpec* eNmrs = resultSpec->getEdamObject ();
-    noteStore->findNotesMetadata (notesMetadataList, authenticationToken, *eNoteFilter, 0, 20, *eNmrs);
+    noteStore->findNotesMetadata (notesMetadataList, authenticationToken, *eNoteFilter, offset, maxNotes, *eNmrs);
 
     evernote::NotesMetadataList* nml = new evernote::NotesMetadataList (&notesMetadataList);
 

@@ -180,6 +180,7 @@ namespace evernote {
 		std::map<std::string, std::string> classifications;
 		UserID* creatorId;
 		UserID* lastEditorId;
+		NoteAttributes (const evernote::edam::NoteAttributes* ena);
 	};
 
 	class NoteSortOrder {};
