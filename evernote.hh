@@ -437,11 +437,13 @@ namespace evernote {
 
 	class NoteFilter {
 	public:
+		NoteFilter ();
+		evernote::edam::NoteFilter* getEdamObject ();
 		int order;
 		bool ascending;
 		std::string words;
 		GUID* notebookGuid;
-		vector<GUID*> tagGuids;
+		std::vector<GUID*> tagGuids;
 		std::string timeZone;
 		bool inactive;
 		std::string emphasized;
@@ -451,9 +453,9 @@ namespace evernote {
 	public:
 		int startIndex;
 		int totalNotes;
-		vector<Note*> notes;
-		vector<std::string> stoppedWords;
-		vector<std::string> searchedWords;
+		std::vector<Note*> notes;
+		std::vector<std::string> stoppedWords;
+		std::vector<std::string> searchedWords;
 		int updateCount;
 	};
 
@@ -471,6 +473,7 @@ namespace evernote {
 		NoteAttributes* attributes;
 		std::string largestResourceMime;
 		int largestResourceSize;
+		NoteMetadata (const evernote::edam::NoteMetadata*); 
 	};
 
 	class NoteVersionId {
@@ -489,6 +492,7 @@ namespace evernote {
 		std::vector<std::string> stoppedWords;
 		std::vector<std::string> searchedWords;
 		int updateCount;
+		NotesMetadataList (evernote::edam::NotesMetadataList*);
 	};
 
 	class NotesMetadataResultSpec {
@@ -504,6 +508,7 @@ namespace evernote {
 		bool includeAttributes;
 		bool includeLargestResourceMime;
 		bool includeLargestResourceSize;
+		evernote::edam::NotesMetadataResultSpec* getEdamObject ();
 	};
 
 	class RelatedQuery {
@@ -579,8 +584,11 @@ namespace evernote {
 		evernote::edam::NoteStoreClient* noteStore;
 		boost::shared_ptr<apache::thrift::transport::THttpClient> userStoreHttpClient;
 	public:
+		/** IMPLEMENTED **/
 		NoteStore (std::string noteStoreUrl);
+		/** IMPLEMENTED **/
 		~NoteStore ();
+
 		SyncState* getSyncState (std::string authenticationToken);
 		SyncState* getSyncStateWithMetrics (std::string authenticationToken, 
 			ClientUsageMetrics* clientMetrics);
@@ -591,6 +599,7 @@ namespace evernote {
 		SyncChunk* getLinkedNotebookSyncChunk (std::string authenticationToken,
 			LinkedNotebook* linkedNotebook, int afterUSN, int maxEntries,
 			bool fullSyncOnly);
+		/** IMPLEMENTED **/
 		std::vector<Notebook*>* listNotebooks(std::string authenticationToken);
 		Notebook* getNotebook (std::string authenticationToken, GUID* guid);
 		Notebook* getDefaultNotebook (std::string authenticationToken);
@@ -615,6 +624,7 @@ namespace evernote {
 		int expungeSearch (std::string authenticationToken, GUID* guid);
 		int findNoteOffset (std::string authenticationToken, NoteFilter* filter,
 			GUID* guid);
+
 		NotesMetadataList* findNotesMetadata (std::string authenticationToken,
 			NoteFilter* filter, int offset, int maxNotes,
 			NotesMetadataResultSpec* resultSpec);
@@ -766,8 +776,10 @@ namespace evernote {
 		boost::shared_ptr<apache::thrift::transport::THttpClient> auth_http;
 		std::string evernoteUrl; int port; std::string parameterThree;
 	public:
+		/** IMPLEMENTED **/
 		UserStore (std::string evernoteUrl, int port, std::string parameterThree,
 			std::string authenticationToken);
+		/** IMPLEMENTED **/
 		~UserStore ();
 
 		bool checkVersion (std::string clientName, short edamVersionMajor = 1,
@@ -789,6 +801,7 @@ namespace evernote {
 		User* getUser (std::string authenticationToken);
 		PublicUserInfo* getPublicUserInfo (std::string username);
 		PremiumInfo* getPremiumInfo (std::string authenticationToken);
+		/** IMPLEMENTED **/
 		std::string getNoteStoreUrl (std::string authenticationToken);
 	};
 }

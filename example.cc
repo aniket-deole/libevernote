@@ -42,6 +42,13 @@ int main () {
 
     std::cout << "*. List all notes.\n";
     std::cout << "----------------------------------------------------------------\n";
+    evernote::NoteFilter* nf = new evernote::NoteFilter ();
+    evernote::NotesMetadataResultSpec* nmrs = new evernote::NotesMetadataResultSpec ();
+    evernote::NotesMetadataList* nml = noteStore->findNotesMetadata (authToken, nf, 0, 20, nmrs);
+    std::cout << nml->totalNotes << std::endl;
+    for (int i = 0; i < nml->notes.size (); i++) {
+        std::cout << nml->notes[i]->title << std::endl;
+    }
 
     std::cout << "----------------------------------------------------------------\n";
     std::cout << "----------------------------------------------------------------\n";

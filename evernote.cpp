@@ -151,3 +151,66 @@ evernote::Timestamp::Timestamp (long t) {
 evernote::Publishing::Publishing ( evernote::edam::Publishing p) {
 
 }
+
+evernote::NoteFilter::NoteFilter () : order(0), ascending(0), words(""), timeZone(""), inactive(0), emphasized("") {
+    notebookGuid = new GUID ("");
+}
+
+evernote::edam::NoteFilter* evernote::NoteFilter::getEdamObject () {
+    evernote::edam::NoteFilter* eNoteFilter = new evernote::edam::NoteFilter ();
+    return eNoteFilter;
+}
+
+evernote::edam::NotesMetadataResultSpec* evernote::NotesMetadataResultSpec::getEdamObject () {
+    evernote::edam::NotesMetadataResultSpec* nmrs = new evernote::edam::NotesMetadataResultSpec ();
+    nmrs->includeTitle = true;
+    nmrs->__isset.includeTitle = true;
+    nmrs->includeCreated = true;
+    nmrs->__isset.includeCreated = true;
+    nmrs->includeUpdated = true;
+    nmrs->__isset.includeUpdated = true;
+    nmrs->includeNotebookGuid = true;
+    nmrs->__isset.includeNotebookGuid = true;
+    return nmrs;
+}
+
+evernote::NotesMetadataList::NotesMetadataList (evernote::edam::NotesMetadataList* enml) {
+    totalNotes = enml->totalNotes;
+    startIndex = enml->startIndex;
+    stoppedWords = enml->stoppedWords;
+    searchedWords = enml->searchedWords;
+    updateCount = enml->updateCount;
+    notes.reserve (enml->notes.size ());
+    for (int i = 0; i < enml->notes.size (); i++) {
+        notes.push_back (new NoteMetadata (&(enml->notes[i])));
+    }
+}
+
+evernote::NoteMetadata::NoteMetadata (const evernote::edam::NoteMetadata* enm) {
+    guid = new GUID (enm->guid);
+    title = enm->title;
+    contentLength = enm->contentLength;
+    created = new Timestamp (enm->created);
+    updated = new Timestamp (enm->updated);
+    deleted = new Timestamp (enm->deleted);
+    updateSequenceNum = enm->updateSequenceNum;
+    notebookGuid = enm->notebookGuid;
+//    std::vector<GUID*> tagGuids;
+//    NoteAttributes* attributes;
+    largestResourceMime = enm->largestResourceMime;
+    largestResourceSize = enm->largestResourceSize;
+}
+
+evernote::NotesMetadataList* evernote::NoteStore::findNotesMetadata (std::string authenticationToken,
+            evernote::NoteFilter* filter, int offset, int maxNotes,
+            evernote::NotesMetadataResultSpec* resultSpec) {
+
+    evernote::edam::NotesMetadataList notesMetadataList;
+    evernote::edam::NoteFilter* eNoteFilter = filter->getEdamObject ();
+    evernote::edam::NotesMetadataResultSpec* eNmrs = resultSpec->getEdamObject ();
+    noteStore->findNotesMetadata (notesMetadataList, authenticationToken, *eNoteFilter, 0, 20, *eNmrs);
+
+    evernote::NotesMetadataList* nml = new evernote::NotesMetadataList (&notesMetadataList);
+
+    return nml;
+}
