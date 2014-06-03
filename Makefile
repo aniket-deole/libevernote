@@ -1,6 +1,6 @@
 CC=g++
-CFLAGS=-c -g -fPIC -Ievernote-sdk/thrift  -I/usr/include/ `pkg-config --cflags --libs thrift`
-LDFLAGS=`pkg-config --cflags --libs thrift`
+CFLAGS=-c -g -fPIC -Ievernote-sdk/thrift  -Ievernote-sdk -L`pwd` -lthrift
+LDFLAGS=-L`pwd` -lthrift
 
 SRCS= \
     evernote-sdk/Limits_types.cpp \
@@ -28,10 +28,10 @@ $(EXECUTABLE): $(OBJECTS)
 	$(CC) $(CFLAGS) $< -o $@
 
 clean:
-	rm -rf *.o *.so *.out evernotecppsdktest
+	rm -rf *.o libevernote.so *.out evernotecppsdktest
 
 test: all
-	$(CC) -g example.cc -Ievernote-sdk -Ievernote-sdk/thrift `pkg-config --cflags --libs thrift` -L`pwd` -levernote -o evernotecppsdktest && export LD_LIBRARY_PATH=`pwd`:$LD_LIBRARY_PATH && ./evernotecppsdktest
+	$(CC) -g example.cc -Ievernote-sdk -Ievernote-sdk/thrift -L`pwd` -levernote -lthrift -o evernotecppsdktest && export LD_LIBRARY_PATH=`pwd`:$LD_LIBRARY_PATH && ./evernotecppsdktest
 
 debug: all
-	$(CC) -g example.cc -Ievernote-sdk -Ievernote-sdk/thrift `pkg-config --cflags --libs thrift` -L`pwd` -levernote -o evernotecppsdktest && export LD_LIBRARY_PATH=`pwd`:$LD_LIBRARY_PATH && ddd ./evernotecppsdktest
+	$(CC) -g example.cc -Ievernote-sdk -Ievernote-sdk/thrift -L`pwd` -levernote -lthrift -o evernotecppsdktest && export LD_LIBRARY_PATH=`pwd`:$LD_LIBRARY_PATH && ddd ./evernotecppsdktest
