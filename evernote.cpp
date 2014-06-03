@@ -225,7 +225,7 @@ evernote::NoteMetadata::NoteMetadata (const evernote::edam::NoteMetadata* enm) {
     notebookGuid = enm->notebookGuid;
     std::vector<GUID*> tagGuids;
     tagGuids.reserve (enm->tagGuids.size ());
-    for (int i = 0; i < tagGuids.size (); i++) {
+    for (int i = 0; i < enm->tagGuids.size (); i++) {
         tagGuids.push_back (new GUID (enm->tagGuids[i]));
     }
     attributes = new NoteAttributes (&(enm->attributes));
@@ -276,4 +276,81 @@ std::string evernote::NoteStore::getNoteContent (std::string authenticationToken
     std::string content;
     noteStore->getNoteContent (content, authenticationToken, guid->guid);
     return content;
+}
+
+evernote::Note* evernote::NoteStore::getNote (std::string authenticationToken,
+    GUID* guid, bool withContent, bool withResourcesData,
+    bool withResourcesRecognition, bool withResourcesAlternateData) {
+
+    evernote::edam::Note evernoteNote;
+    noteStore->getNote (evernoteNote, authenticationToken, guid->guid, withContent, 
+        withResourcesData, withResourcesRecognition, withResourcesAlternateData);
+    evernote::Note* note = new evernote::Note (&evernoteNote);
+    return note;
+}
+
+evernote::Note::Note (evernote::edam::Note* evernoteNote) {
+    guid = new GUID(evernoteNote->guid);
+    title = evernoteNote->title;
+    std::string content = evernoteNote->content;
+    std::string contentHash = evernoteNote->contentHash;
+    int contentLength = evernoteNote->contentLength;
+    Timestamp* created = new Timestamp (evernoteNote->created);
+    Timestamp* updated = new Timestamp (evernoteNote->updated);
+    Timestamp* deleted = new Timestamp (evernoteNote->deleted);
+    bool active = evernoteNote->active;
+    int updateSequenceNum = evernoteNote->updateSequenceNum;
+    notebookGuid = evernoteNote->notebookGuid;
+
+    tagGuids.reserve (evernoteNote->tagGuids.size ());
+    for (int i = 0; i < evernoteNote->tagGuids.size (); i++) {
+        tagGuids.push_back (new GUID (evernoteNote->tagGuids[i]));
+    }
+
+    resources.reserve (evernoteNote->resources.size ());
+    for (int i = 0; i < evernoteNote->resources.size (); i++) {
+        resources.push_back (new evernote::Resource (&(evernoteNote->resources[i])));
+    }        
+    attributes = new NoteAttributes (&(evernoteNote->attributes));
+    
+    tagNames.reserve (evernoteNote->tagNames.size ());
+    for (int i = 0; i < evernoteNote->tagNames.size (); i++) {
+        tagNames.push_back (evernoteNote->tagNames[i]);
+    }
+}
+
+evernote::Resource::Resource (evernote::edam::Resource* resource) {
+    guid = new GUID (resource->guid);
+    noteGuid = new GUID (resource->noteGuid);
+    data = new Data (&(resource->data));
+    mime = resource->mime;
+    width = resource->width;
+    height = resource->height;
+    duration = resource->duration;
+    active = resource->active;
+    recognition = new Data (&(resource->recognition));
+    attributes = new ResourceAttributes (&(resource->attributes));
+    updateSequenceNum = resource->updateSequenceNum;
+    alternateData = new Data (&(resource->alternateData));
+}
+
+evernote::Data::Data (evernote::edam::Data* evernoteData) {
+    bodyHash = evernoteData->bodyHash;
+    size = evernoteData->size;
+    body = evernoteData->body;
+}
+
+evernote::ResourceAttributes::ResourceAttributes (evernote::edam::ResourceAttributes* ra) {
+    sourceURL = ra->sourceURL;
+    timestamp = new Timestamp(ra->timestamp);
+    latitude = ra->latitude;
+    longitude = ra->longitude;
+    altitude = ra->altitude;
+    cameraMake = ra->cameraMake;
+    cameraModel = ra->cameraModel;
+    clientWillIndex = ra->clientWillIndex;
+    recoType = ra->recoType;
+    fileName = ra->fileName;
+    attachment = ra->attachment;
+    /**    LazyMap* applicationData; **/
 }

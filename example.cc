@@ -49,7 +49,11 @@ int main () {
     std::cout << nml->totalNotes << std::endl;
     for (int i = 0; i < nml->notes.size (); i++) {
         std::cout << nml->notes[i]->title << std::endl;
-        std::cout << noteStore->getNoteContent (authToken, nml->notes[i]->guid);
+        // std::cout << noteStore->getNoteContent (authToken, nml->notes[i]->guid);
+        evernote::Note* note = noteStore->getNote (authToken, nml->notes[i]->guid, false, true, false, false);
+        for (int j = 0; j < note->resources.size (); j++) {
+            std::cout << note->resources[j]->data->body << std::endl;
+        }
     }
 
     std::cout << "----------------------------------------------------------------\n";

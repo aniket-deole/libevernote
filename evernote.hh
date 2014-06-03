@@ -111,6 +111,7 @@ namespace evernote {
 		std::string bodyHash;
 		int size;
 		std::string body;
+		Data (evernote::edam::Data* evernoteData);
 	};
 
 	class GUID {
@@ -153,10 +154,11 @@ namespace evernote {
 		bool active;
 		int updateSequenceNum;
 		std::string notebookGuid;
-		std::vector<GUID> tagGuids;
+		std::vector<GUID*> tagGuids;
 		std::vector<Resource*> resources;
 		NoteAttributes* attributes;
 		std::vector<std::string> tagNames;
+		Note (evernote::edam::Note*);
 	};
 
 	class NoteAttributes {
@@ -283,6 +285,7 @@ namespace evernote {
 		ResourceAttributes* attributes;
 		int updateSequenceNum;
 		Data* alternateData;
+		Resource (evernote::edam::Resource*);
 	};
 
 	class ResourceAttributes {
@@ -299,6 +302,7 @@ namespace evernote {
 		std::string fileName;
 		bool attachment;
 		LazyMap* applicationData;
+		ResourceAttributes (evernote::edam::ResourceAttributes*);
 	};
 
 	class SavedSearch {
