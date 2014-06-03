@@ -20,7 +20,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 int main () {
     /*
-     * AuthToken would be recieved after oauth. 
+     * AuthToken would be received after oauth. 
      * Right now we are using the one provided by evernote for accessing 
      * sandbox.evernote.com
      */
@@ -49,14 +49,11 @@ int main () {
     std::cout << nml->totalNotes << std::endl;
     for (int i = 0; i < nml->notes.size (); i++) {
         std::cout << nml->notes[i]->title << std::endl;
+        std::cout << noteStore->getNoteContent (authToken, nml->notes[i]->guid);
     }
 
     std::cout << "----------------------------------------------------------------\n";
     std::cout << "----------------------------------------------------------------\n";
-
-    std::cout << "*. List all notes from Notebook\n";
-    std::cout << "----------------------------------------------------------------\n";
-
 
     std::cout << "----------------------------------------------------------------\n";
     std::cout << "----------------------------------------------------------------\n";

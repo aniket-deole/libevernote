@@ -270,3 +270,10 @@ evernote::NotesMetadataList* evernote::NoteStore::findNotesMetadata (std::string
 
     return nml;
 }
+
+std::string evernote::NoteStore::getNoteContent (std::string authenticationToken,
+            GUID* guid) {
+    std::string content;
+    noteStore->getNoteContent (content, authenticationToken, guid->guid);
+    return content;
+}
