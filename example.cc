@@ -52,15 +52,9 @@ int main () {
         // std::cout << noteStore->getNoteContent (authToken, nml->notes[i]->guid);
         evernote::Note* note = noteStore->getNote (authToken, nml->notes[i]->guid, false, true, false, false);
         for (int j = 0; j < note->resources.size (); j++) {
-            std::cout << note->resources[j]->data->body << std::endl;
+//          std::cout << note->resources[j]->data->body << std::endl;
         }
     }
-
-    std::cout << "----------------------------------------------------------------\n";
-    std::cout << "----------------------------------------------------------------\n";
-
-    std::cout << "----------------------------------------------------------------\n";
-    std::cout << "----------------------------------------------------------------\n";
 
     std::cout << "*. Find Note.\n";
     std::cout << "----------------------------------------------------------------\n";
