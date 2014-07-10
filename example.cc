@@ -180,12 +180,21 @@ int main () {
 //                  myfile.open ("asd");
 //              myfile << note->resources[j]->data->body;
 //              myfile.close();
-  std::string encoded = base64_encode(reinterpret_cast<const unsigned char*>(note->resources[j]->data->body.c_str ()), note->resources[j]->data->size);
+          std::string encoded = base64_encode(reinterpret_cast<const unsigned char*>(note->resources[j]->data->body.c_str ()), note->resources[j]->data->size);
 
-  std::cout << "encoded: " << encoded << std::endl;
-            return 1;
+         //std::cout << "encoded: " << encoded << std::endl;                
         }
     }
+
+    // Create a Note.
+    NoteStore_createNote_t* NoteStore_createNote_p = (NoteStore_createNote_t*) dlsym (handle, "NoteStore_createNote");
+    evernote::Note* note = NoteStore_createNote_p ();
+    note->title = "First UpSync Note.";
+    note->content = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><!DOCTYPE en-note SYSTEM \"http://xml.evernote.com/pub/enml2.dtd\"><en-note> HelloWorld </en-note>";
+
+    NoteStore_createNote2_t* NoteStore_createNote2_p = (NoteStore_createNote2_t*) dlsym (handle, "NoteStore_createNote2");
+
+    NoteStore_createNote2_p (noteStore, authToken, note);
 
     // std::cout << "*. Find Note.\n";
     // std::cout << "----------------------------------------------------------------\n";

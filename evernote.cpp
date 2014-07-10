@@ -289,6 +289,10 @@ evernote::Note* evernote::NoteStore::getNote (std::string authenticationToken,
     return note;
 }
 
+evernote::Note::Note () {
+
+}
+
 evernote::Note::Note (evernote::edam::Note* evernoteNote) {
     guid = new GUID(evernoteNote->guid);
     title = evernoteNote->title;
@@ -355,6 +359,25 @@ evernote::ResourceAttributes::ResourceAttributes (evernote::edam::ResourceAttrib
     /**    LazyMap* applicationData; **/
 }
 
+evernote::Note* evernote::NoteStore::createNote (std::string authenticationToken, Note* note) {
+    evernote::edam::Note* reference_note = new evernote::edam::Note ();
+    reference_note->title = note->title;
+    reference_note->content = note->content;
+
+    reference_note->__isset.title = true;
+    reference_note->__isset.content = true;
+    reference_note->__isset.contentHash = false;
+    reference_note->__isset.contentLength = true;
+    reference_note->__isset.resources = false;
+    reference_note->__isset.attributes = false;
+    reference_note->__isset.notebookGuid = false;
+    
+    reference_note->contentLength = note->content.size();
+    evernote::edam::Note* returnNote = new evernote::edam::Note ();
+    noteStore->createNote (*returnNote, authenticationToken, *reference_note);
+    return new evernote::Note (returnNote);
+}
+        
 
 // the class factories
 
@@ -391,4 +414,12 @@ extern "C" evernote::NoteFilter* NoteStore_createNoteFilter () {
 }
 extern "C" evernote::NotesMetadataResultSpec* NoteStore_createNotesMetadataResultSpec () {
     return new evernote::NotesMetadataResultSpec ();
+}
+
+extern "C" evernote::Note* NoteStore_createNote () {
+    return new evernote::Note ();
+}
+
+extern "C" evernote::Note* NoteStore_createNote2 (evernote::NoteStore* n, std::string a, evernote::Note* b) {
+    return n->createNote (a, b);
 }

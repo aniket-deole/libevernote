@@ -160,6 +160,7 @@ namespace evernote {
 		NoteAttributes* attributes;
 		std::vector<std::string> tagNames;
 		Note (evernote::edam::Note*);
+		Note ();
 	};
 
 	class NoteAttributes {
@@ -823,3 +824,5 @@ typedef evernote::NotesMetadataList* NoteStore_findNotesMetadata_t (evernote::No
 typedef evernote::Note* NoteStore_getNote_t (evernote::NoteStore*, std::string, evernote::GUID*, bool, bool, bool, bool);
 typedef evernote::NoteFilter* NoteStore_createNoteFilter_t ();
 typedef evernote::NotesMetadataResultSpec* NoteStore_createNotesMetadataResultSpec_t ();
+typedef evernote::Note* NoteStore_createNote_t ();
+typedef evernote::Note* NoteStore_createNote2_t (evernote::NoteStore*, std::string a, evernote::Note* b);
