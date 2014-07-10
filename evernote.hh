@@ -21,6 +21,7 @@
 #include "evernote-sdk/NoteStore.h"
 
 
+
 namespace evernote {
 
 	class Timestamp;
@@ -810,3 +811,8 @@ namespace evernote {
 		std::string getNoteStoreUrl (std::string authenticationToken);
 	};
 }
+
+// the types of the class factories
+typedef evernote::UserStore* createUserStore_t(std::string, int, std::string, std::string);
+typedef void destroy_t(evernote::UserStore*);
+typedef std::string UserStore_getNoteStoreUrl_t (evernote::UserStore*, std::string);

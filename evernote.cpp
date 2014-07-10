@@ -354,3 +354,18 @@ evernote::ResourceAttributes::ResourceAttributes (evernote::edam::ResourceAttrib
     attachment = ra->attachment;
     /**    LazyMap* applicationData; **/
 }
+
+
+// the class factories
+
+extern "C" evernote::UserStore* createUserStore(std::string a, int b, std::string c, std::string d) {
+    return new evernote::UserStore (a, b, c, d);
+}
+
+extern "C" void destroy(void* p) {
+    delete p;
+}
+
+extern "C" std::string UserStore_getNoteStoreUrl (evernote::UserStore* u, std::string a) {
+    return u->getNoteStoreUrl (a);
+}
