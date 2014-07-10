@@ -133,43 +133,48 @@ int main () {
      */
     std::string authToken = "S=s1:U=7558a:E=14aae5ecd73:C=14356ada175:P=1cd:A=en-devtoken:V=2:H=905a30846fdad07b83592ff73da7a7c0";
     // load the symbols.
-    createUserStore_t* create_triangle = (createUserStore_t*) dlsym(handle, "createUserStore");
+    createUserStore_t* createUserStore_p = (createUserStore_t*) dlsym(handle, "createUserStore");
     const char* dlsym_error = dlerror();
     if (dlsym_error) {
         std::cerr << "Cannot load symbol create: " << dlsym_error << '\n';
         return 1;
     }
-    evernote::UserStore* userStore = create_triangle ("sandbox.evernote.com", 80, "/edam/user", authToken);
+    evernote::UserStore* userStore = createUserStore_p ("sandbox.evernote.com", 80, "/edam/user", authToken);
 
-    UserStore_getNoteStoreUrl_t* getNoteStoreUrlP = (UserStore_getNoteStoreUrl_t*) dlsym (handle,"UserStore_getNoteStoreUrl");
+    UserStore_getNoteStoreUrl_t* UserStore_getNoteStoreUrl_p = (UserStore_getNoteStoreUrl_t*) dlsym (handle,"UserStore_getNoteStoreUrl");
 
-    std:: cout << getNoteStoreUrlP (userStore, authToken) << std::endl;
-/*
-    evernote::UserStore* userStore = new evernote::UserStore ("sandbox.evernote.com", 80, "/edam/user", authToken);
-    evernote::NoteStore* noteStore = new evernote::NoteStore (userStore->getNoteStoreUrl (authToken));
+    createNoteStore_t* createNoteStore_p = (createNoteStore_t*) dlsym (handle, "createNoteStore");
+    evernote::NoteStore* noteStore = createNoteStore_p (UserStore_getNoteStoreUrl_p (userStore, authToken));
 
     // std::cout << "*. List all notebooks\n";
     // std::cout << "----------------------------------------------------------------\n";
-    std::vector<evernote::Notebook*>* notebookList = noteStore->listNotebooks (authToken);
+    NoteStore_listNotebooks_t* NoteStore_listNotebooks_p = (NoteStore_listNotebooks_t*) dlsym (handle, "NoteStore_listNotebooks");
+    std::vector<evernote::Notebook*>* notebookList = NoteStore_listNotebooks_p (noteStore, authToken);
 
     for (int i = 0; i < notebookList->size (); i++) {
-        // std::cout << notebookList->at (i)->stack << ":" << notebookList->at (i)->name << std::endl;
+         std::cout << notebookList->at (i)->stack << ":" << notebookList->at (i)->name << std::endl;
     }
 
     // std::cout << "----------------------------------------------------------------\n";
     // std::cout << "----------------------------------------------------------------\n";
 
-    // std::cout << "*. List all notes titles.\n";
-    // std::cout << "----------------------------------------------------------------\n";
-    evernote::NoteFilter* nf = new evernote::NoteFilter ();
-    evernote::NotesMetadataResultSpec* nmrs = new evernote::NotesMetadataResultSpec ();
+    NoteStore_createNoteFilter_t* NoteStore_createNoteFilter_p = (NoteStore_createNoteFilter_t*) dlsym (handle, "NoteStore_createNoteFilter");
+    evernote::NoteFilter* nf = NoteStore_createNoteFilter_p ();
+    NoteStore_createNotesMetadataResultSpec_t* NoteStore_createNotesMetadataResultSpec_p = 
+        (NoteStore_createNotesMetadataResultSpec_t*) dlsym (handle, "NoteStore_createNotesMetadataResultSpec");
+    evernote::NotesMetadataResultSpec* nmrs = NoteStore_createNotesMetadataResultSpec_p ();
     nmrs->includeTitle = true;
-    evernote::NotesMetadataList* nml = noteStore->findNotesMetadata (authToken, nf, 0, 20, nmrs);
+
+    NoteStore_findNotesMetadata_t* NoteStore_findNotesMetadata_p = (NoteStore_findNotesMetadata_t*) dlsym (handle, "NoteStore_findNotesMetadata");
+
+    evernote::NotesMetadataList* nml = NoteStore_findNotesMetadata_p (noteStore, authToken, nf, 0, 20, nmrs);
     // std::cout << nml->totalNotes << std::endl;
     for (int i = 0; i < nml->notes.size (); i++) {
         // std::cout << nml->notes[i]->title << std::endl;
         // // std::cout << noteStore->getNoteContent (authToken, nml->notes[i]->guid);
-        evernote::Note* note = noteStore->getNote (authToken, nml->notes[i]->guid, false, true, false, false);
+       NoteStore_getNote_t* NoteStore_getNote_p = (NoteStore_getNote_t*) dlsym (handle, "NoteStore_getNote");
+
+       evernote::Note* note = NoteStore_getNote_p (noteStore, authToken, nml->notes[i]->guid, false, true, false, false);
         for (int j = 0; j < note->resources.size (); j++) {
 //            std::ofstream myfile;
 //                  myfile.open ("asd");
@@ -191,9 +196,6 @@ int main () {
     // std::cout << "*. Exit" << std::endl;
     // std::cout.flush ();
 
-    delete noteStore;
-    delete userStore;
-*/
     dlclose (handle);
     return 0;
 }

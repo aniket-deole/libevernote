@@ -362,10 +362,33 @@ extern "C" evernote::UserStore* createUserStore(std::string a, int b, std::strin
     return new evernote::UserStore (a, b, c, d);
 }
 
+extern "C" evernote::NoteStore* createNoteStore (std::string a) {
+    return new evernote::NoteStore (a);
+}
 extern "C" void destroy(void* p) {
     delete p;
 }
 
 extern "C" std::string UserStore_getNoteStoreUrl (evernote::UserStore* u, std::string a) {
     return u->getNoteStoreUrl (a);
+}
+
+extern "C" std::vector<evernote::Notebook*>* NoteStore_listNotebooks (evernote::NoteStore* n, std::string a) {
+    return n->listNotebooks (a);
+}
+
+extern "C" evernote::NotesMetadataList* NoteStore_findNotesMetadata (evernote::NoteStore* n, std::string a,
+        evernote::NoteFilter* filter, int o, int m, evernote::NotesMetadataResultSpec* r) {
+    return n->findNotesMetadata (a, filter, o, m, r);
+}
+
+extern "C" evernote::Note* NoteStore_getNote (evernote::NoteStore* n, std::string a,
+    evernote::GUID* guid, bool b, bool c, bool d, bool e) {
+    return n->getNote (a, guid, b,c,d,e);
+}
+extern "C" evernote::NoteFilter* NoteStore_createNoteFilter () {
+    return new evernote::NoteFilter ();
+}
+extern "C" evernote::NotesMetadataResultSpec* NoteStore_createNotesMetadataResultSpec () {
+    return new evernote::NotesMetadataResultSpec ();
 }

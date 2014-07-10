@@ -805,7 +805,7 @@ namespace evernote {
 		AuthenticationResult* authenticateToBusiness (std::string authenticationToken);
 		AuthenticationResult* refreshAuthentication (std::string authenticationToken);
 		User* getUser (std::string authenticationToken);
-		PublicUserInfo* getPublicUserInfo (std::string username);
+		PublicUserInfo* getPublicUsedeferInfo (std::string username);
 		PremiumInfo* getPremiumInfo (std::string authenticationToken);
 		/** IMPLEMENTED **/
 		std::string getNoteStoreUrl (std::string authenticationToken);
@@ -814,5 +814,12 @@ namespace evernote {
 
 // the types of the class factories
 typedef evernote::UserStore* createUserStore_t(std::string, int, std::string, std::string);
-typedef void destroy_t(evernote::UserStore*);
+typedef evernote::NoteStore* createNoteStore_t (std::string);
+typedef void destroy_t(void*);
 typedef std::string UserStore_getNoteStoreUrl_t (evernote::UserStore*, std::string);
+typedef std::vector<evernote::Notebook*>* NoteStore_listNotebooks_t (evernote::NoteStore*, std::string);
+typedef evernote::NotesMetadataList* NoteStore_findNotesMetadata_t (evernote::NoteStore*, std::string, 
+	evernote::NoteFilter*, int, int, evernote::NotesMetadataResultSpec*);
+typedef evernote::Note* NoteStore_getNote_t (evernote::NoteStore*, std::string, evernote::GUID*, bool, bool, bool, bool);
+typedef evernote::NoteFilter* NoteStore_createNoteFilter_t ();
+typedef evernote::NotesMetadataResultSpec* NoteStore_createNotesMetadataResultSpec_t ();
