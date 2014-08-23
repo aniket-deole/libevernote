@@ -34,4 +34,4 @@ test: all
 	$(CC) -g example.cc -Ievernote-sdk -Ievernote-sdk/thrift -L`pwd` -lthrift -ldl -o evernotecppsdktest && export LD_LIBRARY_PATH=`pwd`:$LD_LIBRARY_PATH && ./evernotecppsdktest
 
 debug: all
-	$(CC) -g example.cc -Ievernote-sdk -Ievernote-sdk/thrift -L`pwd` -lthrift -ldl -o evernotecppsdktest && export LD_LIBRARY_PATH=`pwd`:$LD_LIBRARY_PATH && ddd ./evernotecppsdktest
+	$(CC) -g example.cc -Ievernote-sdk -Ievernote-sdk/thrift -L`pwd` -lthrift -ldl -o evernotecppsdktest && export LD_LIBRARY_PATH=`pwd`:$LD_LIBRARY_PATH && gdb ./evernotecppsdktest

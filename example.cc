@@ -121,7 +121,7 @@ int main () {
     handle = dlopen ("libevernote.so", RTLD_LAZY);
     if (!handle) {
       const char* dlsym_error = dlerror();
-      std::cout << "Please Install libevernote.so along with its dependencies.\n Error: " << dlsym_error << std::endl;
+      std::cout << "Please Install libevernote.so along with its dependencies.\nDlSym Error: " << dlsym_error << std::endl;
       return 1;
     }
     dlerror ();
@@ -174,7 +174,16 @@ int main () {
         // // std::cout << noteStore->getNoteContent (authToken, nml->notes[i]->guid);
        NoteStore_getNote_t* NoteStore_getNote_p = (NoteStore_getNote_t*) dlsym (handle, "NoteStore_getNote");
 
-       evernote::Note* note = NoteStore_getNote_p (noteStore, authToken, nml->notes[i]->guid, false, true, false, false);
+       evernote::Note* note = NoteStore_getNote_p (noteStore, authToken, nml->notes[i]->guid, true, true, false, false);
+       
+       Note_enmlToHtml_t* Note_enmlToHtml_p = (Note_enmlToHtml_t*) dlsym (handle, "Note_enmlToHtml");
+       Note_enmlToHtml_p (note);
+
+       std::cout << note->contentEnml << std::endl;
+       std::cout << "-----------------------------";
+       std::cout << "\n" << note->contentHtml << std::endl;
+       std::cout << "-----------------------------\n";
+       std::cout << "-----------------------------\n";
         for (int j = 0; j < note->resources.size (); j++) {
 //            std::ofstream myfile;
 //                  myfile.open ("asd");

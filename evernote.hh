@@ -147,6 +147,8 @@ namespace evernote {
 		GUID* guid;
 		std::string title;
 		std::string content;
+		std::string contentHtml;
+		std::string contentEnml;
 		std::string contentHash;
 		int contentLength;
 		Timestamp* created;
@@ -161,6 +163,12 @@ namespace evernote {
 		std::vector<std::string> tagNames;
 		Note (evernote::edam::Note*);
 		Note ();
+		void convertNodesFromEnmlToHtml (rapidxml::xml_node<>*);
+		void convertNodesFromHtmlToEnml (rapidxml::xml_node<>*);
+		void htmlToEnml ();
+		void enmlToHtml ();
+		rapidxml::xml_document<>* docP;
+
 	};
 
 	class NoteAttributes {
@@ -591,6 +599,8 @@ namespace evernote {
 		evernote::edam::NoteStoreClient* noteStore;
 		boost::shared_ptr<apache::thrift::transport::THttpClient> userStoreHttpClient;
 	public:
+		static std::set<std::string> enmlProhibitedTags;
+		static std::set<std::string> enmlProhibitedAttributes;
 		/** IMPLEMENTED **/
 		NoteStore (std::string noteStoreUrl);
 		/** IMPLEMENTED **/
@@ -826,3 +836,4 @@ typedef evernote::NoteFilter* NoteStore_createNoteFilter_t ();
 typedef evernote::NotesMetadataResultSpec* NoteStore_createNotesMetadataResultSpec_t ();
 typedef evernote::Note* NoteStore_createNote_t ();
 typedef evernote::Note* NoteStore_createNote2_t (evernote::NoteStore*, std::string a, evernote::Note* b);
+typedef void Note_enmlToHtml_t (evernote::Note* n);

@@ -22,6 +22,9 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "evernote.hh"
 
+std::set<std::string> evernote::NoteStore::enmlProhibitedTags;
+std::set<std::string> evernote::NoteStore::enmlProhibitedAttributes;
+
 void print_md5_sum(unsigned char* md) {
     int i;
     for(i=0; i <MD5_DIGEST_LENGTH; i++) {
@@ -80,6 +83,53 @@ std::string evernote::UserStore::getNoteStoreUrl (std::string authToken) {
 
 evernote::NoteStore::NoteStore (std::string noteStoreUrl) {
     try {
+
+
+	    enmlProhibitedTags.insert ("applet");
+	    enmlProhibitedTags.insert ("base");
+	    enmlProhibitedTags.insert ("basefont");
+	    enmlProhibitedTags.insert ("bgsound");
+	    enmlProhibitedTags.insert ("blink");
+	    enmlProhibitedTags.insert ("button");
+	    enmlProhibitedTags.insert ("dir");
+	    enmlProhibitedTags.insert ("embedlet");
+	    enmlProhibitedTags.insert ("fieldset");
+	    enmlProhibitedTags.insert ("form");
+	    enmlProhibitedTags.insert ("frame");
+	    enmlProhibitedTags.insert ("frameset");
+	    enmlProhibitedTags.insert ("head");
+	    enmlProhibitedTags.insert ("iframe");
+	    enmlProhibitedTags.insert ("ilayer");
+	    enmlProhibitedTags.insert ("input");
+	    enmlProhibitedTags.insert ("isindex");
+	    enmlProhibitedTags.insert ("label");
+	    enmlProhibitedTags.insert ("layer");
+	    enmlProhibitedTags.insert ("legend");
+	    enmlProhibitedTags.insert ("link");
+	    enmlProhibitedTags.insert ("marquee");
+	    enmlProhibitedTags.insert ("menu");
+	    enmlProhibitedTags.insert ("meta");
+	    enmlProhibitedTags.insert ("noframes");
+	    enmlProhibitedTags.insert ("noscript");
+	    enmlProhibitedTags.insert ("object");
+	    enmlProhibitedTags.insert ("optgroup");
+	    enmlProhibitedTags.insert ("option");
+	    enmlProhibitedTags.insert ("param");
+	    enmlProhibitedTags.insert ("plaintext");
+	    enmlProhibitedTags.insert ("script");
+	    enmlProhibitedTags.insert ("select");
+	    enmlProhibitedTags.insert ("style");
+	    enmlProhibitedTags.insert ("textarea");
+	    enmlProhibitedTags.insert ("xml");
+
+	    enmlProhibitedAttributes.insert ("id");
+	    enmlProhibitedAttributes.insert ("class");
+	    enmlProhibitedAttributes.insert ("ondblclick");
+	    enmlProhibitedAttributes.insert ("accesskey");
+	    enmlProhibitedAttributes.insert ("data");
+	    enmlProhibitedAttributes.insert ("dynsrc");
+	    enmlProhibitedAttributes.insert ("tabindex");
+
         boost::shared_ptr<apache::thrift::transport::TSSLSocketFactory> sslSocketFactory = 
         boost::shared_ptr<apache::thrift::transport::TSSLSocketFactory>(
             new apache::thrift::transport::TSSLSocketFactory());;
@@ -296,8 +346,9 @@ evernote::Note::Note () {
 evernote::Note::Note (evernote::edam::Note* evernoteNote) {
     guid = new GUID(evernoteNote->guid);
     title = evernoteNote->title;
-    std::string content = evernoteNote->content;
-    std::string contentHash = evernoteNote->contentHash;
+    content = evernoteNote->content;
+    contentEnml = evernoteNote->content;
+    contentHash = evernoteNote->contentHash;
     int contentLength = evernoteNote->contentLength;
     Timestamp* created = new Timestamp (evernoteNote->created);
     Timestamp* updated = new Timestamp (evernoteNote->updated);
@@ -377,7 +428,88 @@ evernote::Note* evernote::NoteStore::createNote (std::string authenticationToken
     noteStore->createNote (*returnNote, authenticationToken, *reference_note);
     return new evernote::Note (returnNote);
 }
-        
+
+
+void evernote::Note::convertNodesFromEnmlToHtml (rapidxml::xml_node<>* root) {
+    char* rootNodeName = root->name ();
+    if (!strcmp (rootNodeName, "en-media")) {
+        char* hashValue;
+        for (rapidxml::xml_attribute<> *attr = root->first_attribute(); attr; 
+            attr = attr->next_attribute ()) {
+            char* attrName= attr->name ();
+            if (!strcmp (attrName, "hash")) {
+                hashValue = attr->value ();
+            }
+            if (!strcmp (attrName, "type")) {
+                if (!strncmp (attr->value(), "image", 5)) {
+                    root->name (docP->allocate_string("img"));
+                    rapidxml::xml_attribute<> *attr = docP->allocate_attribute("src", hashValue);
+                    root->append_attribute(attr);
+                    std::cout << root->name () << std::endl;
+                }
+            }
+        }
+    }
+
+    for (rapidxml::xml_node<> *child = root->first_node (); child;
+            child = child->next_sibling ()) {
+        char* nodeName = child->name ();
+        convertNodesFromEnmlToHtml (child);
+    }
+}
+
+void evernote::Note::convertNodesFromHtmlToEnml (rapidxml::xml_node<>* root) {
+    for (rapidxml::xml_attribute<> *attr = root->first_attribute(); attr; 
+            attr = attr->next_attribute ()) {
+        char* attrName= attr->name ();  
+        if (evernote::NoteStore::enmlProhibitedAttributes.count (attrName)) {
+            root->remove_attribute (attr);
+        }
+    }
+    char* rootNodeName = root->name ();
+
+    if (!strcmp (rootNodeName, "body")) {
+        root->name (docP->allocate_string ("en-note"));
+    }
+
+    /**
+     * Convert img tags to en-media 
+     */
+
+    for (rapidxml::xml_node<> *child = root->first_node (); child;
+            child = child->next_sibling ()) {
+        char* nodeName = child->name ();
+        if (evernote::NoteStore::enmlProhibitedTags.count (nodeName)) {
+            root->remove_node (child);
+        } else {
+            convertNodesFromEnmlToHtml (child);
+        }
+    }
+}
+
+void evernote::Note::enmlToHtml () {
+    rapidxml::xml_document<> doc;
+    char *cstr = new char[contentEnml.length() + 1];
+    strcpy(cstr, contentEnml.c_str());
+    doc.parse<0> (cstr);
+    char *rootNode = doc.allocate_string("body");        // Allocate string and copy name into it
+    doc.first_node ()->name (rootNode);
+    docP = &doc;
+    convertNodesFromEnmlToHtml (doc.first_node ());
+    rapidxml::print(std::back_inserter(contentHtml), doc);
+    delete cstr;
+}
+
+void evernote::Note::htmlToEnml () {
+    rapidxml::xml_document<> doc;
+    char *cstr = new char[contentHtml.length() + 1];
+    strcpy (cstr, contentHtml.c_str ());
+    doc.parse<0> (cstr);
+    docP = &doc;
+    convertNodesFromHtmlToEnml (doc.first_node ());
+    rapidxml::print(std::back_inserter (contentEnml), doc);
+}
+
 
 // the class factories
 
@@ -422,4 +554,8 @@ extern "C" evernote::Note* NoteStore_createNote () {
 
 extern "C" evernote::Note* NoteStore_createNote2 (evernote::NoteStore* n, std::string a, evernote::Note* b) {
     return n->createNote (a, b);
+}
+
+extern "C" void Note_enmlToHtml (evernote::Note* n) {
+	return n->enmlToHtml ();
 }
