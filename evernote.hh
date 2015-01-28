@@ -8,9 +8,9 @@
 #include <openssl/md5.h>
 #include <vector>
 #include <map>
-#include <protocol/TBinaryProtocol.h>
-#include <transport/THttpClient.h>
-#include <transport/TSSLSocket.h>
+#include <thrift/protocol/TBinaryProtocol.h>
+#include <thrift/transport/THttpClient.h>
+#include <thrift/transport/TSSLSocket.h>
 #include <set>
 
 
