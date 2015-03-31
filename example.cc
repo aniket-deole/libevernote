@@ -15,7 +15,15 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <iostream>
 #include <fstream>
 #include <dlfcn.h>
+#include <liboauthcpp/liboauthcpp.h>
 #include "evernote.hh"
+
+std::string consumerKey = "analogx";
+std::string consumerSecret = "953b9c5d5f64c09b";
+std::string request_token_url = "https://sandbox.evernote.com/oauth";
+std::string request_token_query_args = "oauth_callback=sandbox.evernote.com";
+std::string authorize_url = "https://sandbox.evernote.com/OAuth.action";
+std::string access_token_url = "https://sandbox.evernote.com/oauth";
 
 static const std::string base64_chars = 
              "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -26,6 +34,16 @@ static const std::string base64_chars =
 static inline bool is_base64(unsigned char c) {
   return (isalnum(c) || (c == '+') || (c == '/'));
 }
+
+static std::string getUserString(std::string prompt) {
+    std::cout << prompt << " ";
+
+    std::string res;
+    std::cin >> res;
+    std::cout << std::endl;
+    return res;
+}
+ 
 
 std::string base64_encode(unsigned char const* bytes_to_encode, unsigned int in_len) {
   std::string ret;
@@ -131,7 +149,126 @@ int main () {
      * Right now we are using the one provided by evernote for accessing 
      * sandbox.evernote.com
      */
-    std::string authToken = "S=s1:U=7558a:E=14aae5ecd73:C=14356ada175:P=1cd:A=en-devtoken:V=2:H=905a30846fdad07b83592ff73da7a7c0";
+/*          OAuth::SetLogLevel(OAuth::LogLevelDebug);
+ 
+    OAuth::Consumer consumer (consumerKey, consumerSecret);
+    OAuth::Client oauth (&consumer);
+
+//////////////////////////////////////
+    std::string base_request_token_url = request_token_url + (request_token_query_args.empty() ? std::string("") : (std::string("?")+request_token_query_args) );
+    std::string oAuthQueryString =
+        oauth.getURLQueryString( OAuth::Http::Get, base_request_token_url);
+
+    std::cout << "Enter the following in your browser to get the request token: " << std::endl;
+    // Note that getting the query string includes the arguments we
+    // passed in, so we don't need to include request_token_query_args
+    // again.
+    std::cout << request_token_url << "?" << oAuthQueryString << std::endl;
+    std::cout << std::endl;
+
+    // Extract the token and token_secret from the response
+    std::string request_token_resp = getUserString("Enter the response:");
+    // This time we pass the response directly and have the library do the
+    // parsing (see next extractToken call for alternative)
+    OAuth::Token request_token = OAuth::Token::extract( request_token_resp );
+
+    // Get access token and secret from OAuth object
+    std::cout << "Request Token:" << std::endl;
+    std::cout << "    - oauth_token        = " << request_token.key() << std::endl;
+    std::cout << "    - oauth_token_secret = " << request_token.secret() << std::endl;
+    std::cout << std::endl;
+
+    // Step 2: Redirect to the provider. Since this is a CLI script we
+    // do not redirect. In a web application you would redirect the
+    // user to the URL below.
+    std::cout << "Go to the following link in your browser to authorize this application on a user's account:" << std::endl;
+    std::cout << authorize_url << "?oauth_token=" << request_token.key() << std::endl;
+
+    // After the user has granted access to you, the consumer, the
+    // provider will redirect you to whatever URL you have told them
+    // to redirect to. You can usually define this in the
+    // oauth_callback argument as well.
+    std::string pin = getUserString("What is the PIN?");
+    request_token.setPin(pin);
+
+    // Step 3: Once the consumer has redirected the user back to the
+    // oauth_callback URL you can request the access token the user
+    // has approved. You use the request token to sign this
+    // request. After this is done you throw away the request token
+    // and use the access token returned. You should store the oauth
+    // token and token secret somewhere safe, like a database, for
+    // future use.
+    oauth = OAuth::Client(&consumer, &request_token);
+    // Note that we explicitly specify an empty body here (it's a GET) so we can
+    // also specify to include the oauth_verifier parameter
+    oAuthQueryString = oauth.getURLQueryString( OAuth::Http::Get, access_token_url, std::string( "" ), true );
+    std::cout << "Enter the following in your browser to get the final access token & secret: " << std::endl;
+    std::cout << access_token_url << "?" << oAuthQueryString;
+    std::cout << std::endl;
+
+    // Once they've come back from the browser, extract the token and token_secret from the response
+    std::string access_token_resp = getUserString("Enter the response:");
+    // On this extractToken, we do the parsing ourselves (via the library) so we
+    // can extract additional keys that are sent back, in the case of twitter,
+    // the screen_name
+    OAuth::KeyValuePairs access_token_resp_data = OAuth::ParseKeyValuePairs(access_token_resp);
+    OAuth::Token access_token = OAuth::Token::extract( access_token_resp_data );
+
+    std::cout << "Access token:" << std::endl;
+    std::cout << "    - oauth_token        = " << access_token.key() << std::endl;
+    std::cout << "    - oauth_token_secret = " << access_token.secret() << std::endl;
+    std::cout << std::endl;
+    std::cout << "You may now access protected resources using the access tokens above." << std::endl;
+    std::cout << std::endl;
+
+    std::pair<OAuth::KeyValuePairs::iterator, OAuth::KeyValuePairs::iterator> screen_name_its = access_token_resp_data.equal_range("screen_name");
+    for(OAuth::KeyValuePairs::iterator it = screen_name_its.first; it != screen_name_its.second; it++)
+        std::cout << "Also extracted screen name from access token response: " << it->second << std::endl;
+
+    // E.g., to use the access token, you'd create a new OAuth using
+    // it, discarding the request_token:
+    // oauth = OAuth::Client(&consumer, &access_token);
+
+/////////////////////////////////
+*/
+
+    createOAuthManager_t* createOAuthManager_p = (createOAuthManager_t*) dlsym (handle, "createOAuthManager");
+    evernote::OAuthManager* oAuthManager = createOAuthManager_p (consumerKey, consumerSecret,
+          request_token_url, request_token_query_args, authorize_url, access_token_url);
+    
+    OAuthManager_generateRequestTokenUrl_t* OAuthManager_generateRequestTokenUrl_p =
+      (OAuthManager_generateRequestTokenUrl_t*) dlsym (handle, "OAuthManager_generateRequestTokenUrl");
+
+    std::string rqu = OAuthManager_generateRequestTokenUrl_p (oAuthManager);
+    
+    std::cout << "Enter this in the browser:\n";
+    std::cout << rqu << std::endl;
+
+    std::string rtr = getUserString ("Enter the response:");
+
+    OAuthManager_generateAuthorizationUrl_t* OAuthManager_generateAuthorizationUrl_p =
+      (OAuthManager_generateAuthorizationUrl_t*) dlsym (handle, "OAuthManager_generateAuthorizationUrl");
+    std::string authUrl = OAuthManager_generateAuthorizationUrl_p (oAuthManager, rtr);
+
+    std::cout << "Enter this in the browser:\n";
+    std::cout << authUrl << std::endl;
+
+    std::string ppin = getUserString ("What is the PIN?");
+
+    OAuthManager_generateFinalAccessTokenUrl_t* OAuthManager_generateFinalAccessTokenUrl_p =
+      (OAuthManager_generateFinalAccessTokenUrl_t*) dlsym (handle, "OAuthManager_generateFinalAccessTokenUrl");
+    std::string fat = OAuthManager_generateFinalAccessTokenUrl_p (oAuthManager, ppin);
+
+    std::cout << "Enter this in browser:" << fat << std::endl;
+    std::string ffat = getUserString ("Enter final decoded token:");
+
+    OAuthManager_generateAccessToken_t* OAuthManager_generateAccessToken_p = 
+      (OAuthManager_generateAccessToken_t*) dlsym (handle, "OAuthManager_generateAccessToken");
+
+    std::string authToken = OAuthManager_generateAccessToken_p (oAuthManager, ffat);
+
+
+
     // load the symbols.
     createUserStore_t* createUserStore_p = (createUserStore_t*) dlsym(handle, "createUserStore");
     const char* dlsym_error = dlerror();

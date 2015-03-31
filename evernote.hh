@@ -12,6 +12,7 @@
 #include <thrift/transport/THttpClient.h>
 #include <thrift/transport/TSSLSocket.h>
 #include <set>
+#include <liboauthcpp/liboauthcpp.h>
 
 
 #include "rapidxml_print.hpp"
@@ -821,6 +822,45 @@ namespace evernote {
 		/** IMPLEMENTED **/
 		std::string getNoteStoreUrl (std::string authenticationToken);
 	};
+
+  class OAuthManager {
+    private:
+      // The following will be provided by the client.
+      std::string consumerKey;
+      std::string consumerSecret;
+      std::string requestTokenUrl;
+      std::string requestTokenQueryArgs;
+      std::string authorizeUrl;
+      std::string accessTokenUrl;
+     
+      // The following will be generated in the process.
+      std::string accessVerifier;
+      std::string accessTokenString;
+      std::string accessToken;
+
+      // OAuth Constructs
+      OAuth::Consumer* consumer;
+      OAuth::Client* client;
+      OAuth::Token* requestToken;
+
+    public:
+      // The following methods should be called in correct order, other
+      // wise login will fail.
+      // STEP 1
+      OAuthManager (std::string ck, std::string cs, std::string rtu, std::string rtqa,
+          std::string au, std::string atu);
+      // STEP 2
+      std::string generateRequestTokenUrl ();
+      // STEP 3
+      std::string generateAuthorizationUrl (std::string rtu);
+      // STEP 4
+      std::string generateFinalAccessTokenUrl (std::string av);
+      // STEP 5
+      std::string generateAccessToken (std::string ats);
+      // Call this method last. Use this method to get the access token
+      // everytime.
+      std::string getAccessToken ();
+  };
 }
 
 // the types of the class factories
@@ -837,3 +877,11 @@ typedef evernote::NotesMetadataResultSpec* NoteStore_createNotesMetadataResultSp
 typedef evernote::Note* NoteStore_createNote_t ();
 typedef evernote::Note* NoteStore_createNote2_t (evernote::NoteStore*, std::string a, evernote::Note* b);
 typedef void Note_enmlToHtml_t (evernote::Note* n);
+
+typedef evernote::OAuthManager* createOAuthManager_t (std::string, std::string, std::string,
+    std::string, std::string, std::string);
+typedef std::string OAuthManager_generateRequestTokenUrl_t (evernote::OAuthManager*);
+typedef std::string OAuthManager_generateAuthorizationUrl_t (evernote::OAuthManager*, std::string);
+typedef std::string OAuthManager_generateFinalAccessTokenUrl_t (evernote::OAuthManager*, std::string);
+typedef std::string OAuthManager_generateAccessToken_t (evernote::OAuthManager*, std::string);
+typedef std::string OAuthManager_getAccessToken_t (evernote::OAuthManager*);

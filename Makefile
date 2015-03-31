@@ -1,5 +1,5 @@
 CC=g++
-CFLAGS=-c -g -fPIC -Ievernote-sdk/thrift  -Ievernote-sdk -L`pwd` -lthrift
+CFLAGS=-c -g -fPIC -Ievernote-sdk/thrift -I. -Ievernote-sdk -L`pwd` -lthrift
 LDFLAGS=-L`pwd` -lthrift
 
 SRCS= \
@@ -14,6 +14,11 @@ SRCS= \
     evernote-sdk/NoteStore_types.cpp \
     evernote-sdk/Types_types.cpp \
     evernote-sdk/UserStore.cpp \
+		base64.cpp \
+		HMAC_SHA1.cpp \
+		liboauthcpp.cpp \
+		SHA1.cpp \
+		urlencode.cpp \
     evernote.cpp
  
 OBJECTS=$(SRCS:.cpp=.o)
@@ -31,7 +36,7 @@ clean:
 	rm -rf *.o libevernote.so *.out evernotecppsdktest
 
 test: all
-	$(CC) -g example.cc -Ievernote-sdk -Ievernote-sdk/thrift -L`pwd` -lthrift -ldl -o evernotecppsdktest && export LD_LIBRARY_PATH=`pwd`:$LD_LIBRARY_PATH && ./evernotecppsdktest
+	$(CC) -g example.cc -Ievernote-sdk -I. -Ievernote-sdk/thrift -L`pwd` -lthrift -ldl -levernote -o evernotecppsdktest && export LD_LIBRARY_PATH=`pwd`:$LD_LIBRARY_PATH && ./evernotecppsdktest 
 
 debug: all
-	$(CC) -g example.cc -Ievernote-sdk -Ievernote-sdk/thrift -L`pwd` -lthrift -ldl -o evernotecppsdktest && export LD_LIBRARY_PATH=`pwd`:$LD_LIBRARY_PATH && gdb ./evernotecppsdktest
+	$(CC) -g example.cc -Ievernote-sdk -I. -Ievernote-sdk/thrift -L`pwd` -lthrift -ldl -levernote -o evernotecppsdktest && export LD_LIBRARY_PATH=`pwd`:$LD_LIBRARY_PATH && gdb ./evernotecppsdktest

@@ -25,6 +25,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 std::set<std::string> evernote::NoteStore::enmlProhibitedTags;
 std::set<std::string> evernote::NoteStore::enmlProhibitedAttributes;
 
+
 void print_md5_sum(unsigned char* md) {
     int i;
     for(i=0; i <MD5_DIGEST_LENGTH; i++) {
@@ -510,6 +511,77 @@ void evernote::Note::htmlToEnml () {
     rapidxml::print(std::back_inserter (contentEnml), doc);
 }
 
+evernote::OAuthManager::OAuthManager (std::string ck, std::string cs, std::string rtu,
+    std::string rtqa, std::string au, std::string atu) {
+  consumerKey = ck;
+  consumerSecret = cs;
+  requestTokenUrl = rtu;
+  requestTokenQueryArgs = rtqa;
+  authorizeUrl = au;
+  accessTokenUrl = atu;
+}
+
+extern "C" evernote::OAuthManager* createOAuthManager (std::string ck, std::string cs,
+    std::string rtu, std::string rtqa, std::string au, std::string atu) {
+    return new evernote::OAuthManager (ck, cs, rtu, rtqa, au, atu);
+}
+
+std::string evernote::OAuthManager::generateRequestTokenUrl () {
+  consumer = new OAuth::Consumer (consumerKey, consumerSecret);
+  client = new OAuth::Client (consumer);
+
+  std::string baseRequestTokenUrl = requestTokenUrl + (requestTokenQueryArgs.empty () ? 
+      std::string ("") : (std::string ("?") + requestTokenQueryArgs));
+
+  return requestTokenUrl + "?" + client->getURLQueryString (OAuth::Http::Get, baseRequestTokenUrl);
+}
+
+extern "C" std::string OAuthManager_generateRequestTokenUrl (evernote::OAuthManager* a) {
+  return a->generateRequestTokenUrl ();
+}
+
+std::string evernote::OAuthManager::generateAuthorizationUrl (std::string rtr) {
+  requestToken = new OAuth::Token (OAuth::Token::extract (rtr));
+  return authorizeUrl + "?oauth_token=" + requestToken->key ();
+}
+
+extern "C" std::string OAuthManager_generateAuthorizationUrl (evernote::OAuthManager* a, 
+    std::string rtr) {
+  return a->generateAuthorizationUrl (rtr);
+}
+
+std::string evernote::OAuthManager::generateFinalAccessTokenUrl (std::string av) {
+  accessVerifier = av;
+  requestToken->setPin (accessVerifier);
+
+  client = new OAuth::Client (consumer, requestToken);
+  return accessTokenUrl + "?" + client->getURLQueryString (OAuth::Http::Get, accessTokenUrl, std::string (""), true);
+}
+
+extern "C" std::string OAuthManager_generateFinalAccessTokenUrl (evernote::OAuthManager* a,
+    std::string av) {
+  return a->generateFinalAccessTokenUrl (av);
+}
+
+std::string evernote::OAuthManager::generateAccessToken (std::string ats) {
+  OAuth::KeyValuePairs accessTokenResponseData = OAuth::ParseKeyValuePairs (ats);
+  OAuth::Token accessTokenToken = OAuth::Token::extract (accessTokenResponseData);
+  accessToken = accessTokenToken.key ();
+  return accessToken;
+}
+
+extern "C" std::string OAuthManager_generateAccessToken (evernote::OAuthManager* a,
+    std::string ats) {
+  return a->generateAccessToken (ats);
+}
+
+std::string evernote::OAuthManager::getAccessToken () {
+  return accessToken;
+}
+
+extern "C" std::string OAuthManager_getAccessToken (evernote::OAuthManager* a) {
+  return a->getAccessToken ();
+}
 
 // the class factories
 
@@ -521,7 +593,11 @@ extern "C" evernote::NoteStore* createNoteStore (std::string a) {
     return new evernote::NoteStore (a);
 }
 extern "C" void destroy(void* p) {
-    delete p;
+    // Commenting this right now.
+    // I think we may need separete delete for each data type
+    // as deleting a void pointer is not defined.
+    // delete p;
+    (void) p;
 }
 
 extern "C" std::string UserStore_getNoteStoreUrl (evernote::UserStore* u, std::string a) {
@@ -559,3 +635,4 @@ extern "C" evernote::Note* NoteStore_createNote2 (evernote::NoteStore* n, std::s
 extern "C" void Note_enmlToHtml (evernote::Note* n) {
 	return n->enmlToHtml ();
 }
+
