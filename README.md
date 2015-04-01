@@ -9,3 +9,6 @@ It basically states to remove the authorize () call on the last line of checkHan
 
 =======
 Use make to compile and make test to test it out with my authKeys.
+
+=======
+It is a C++ library but also provides extern "C" hooks to also allow dynamic loading of the library using dlsym.
