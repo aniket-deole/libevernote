@@ -1,3 +1,5 @@
+#ifndef _LIBEVERNOTE_HH_
+#define _LIBEVERNOTE_HH_
 
 #include <iostream>
 #include <sstream>
@@ -885,3 +887,5 @@ typedef std::string OAuthManager_generateAuthorizationUrl_t (evernote::OAuthMana
 typedef std::string OAuthManager_generateFinalAccessTokenUrl_t (evernote::OAuthManager*, std::string);
 typedef std::string OAuthManager_generateAccessToken_t (evernote::OAuthManager*, std::string);
 typedef std::string OAuthManager_getAccessToken_t (evernote::OAuthManager*);
+
+#endif
