@@ -636,3 +636,25 @@ extern "C" void Note_enmlToHtml (evernote::Note* n) {
 	return n->enmlToHtml ();
 }
 
+evernote::SyncState::SyncState (evernote::edam::SyncState* ss) {
+    updateCount = ss->updateCount;
+}
+
+evernote::SyncState* evernote::NoteStore::getSyncState (std::string authToken) {
+    try {        
+
+        evernote::edam::SyncState* returnSyncState = new evernote::edam::SyncState ();
+        noteStore->getSyncState (*returnSyncState, authToken);
+
+        return new evernote::SyncState (returnSyncState);
+    } catch (apache::thrift::transport::TTransportException e) {
+        std::cerr << "Exception in evernote::SyncState* evernote::NoteStore::getSyncState (std::string authToken)" 
+              << std::endl;
+        return NULL;
+    }
+}
+
+extern "C" evernote::SyncState* NoteStore_getSyncState (evernote::NoteStore* n, std::string authToken) {
+    return n->getSyncState (authToken);
+}
+

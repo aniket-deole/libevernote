@@ -595,6 +595,8 @@ namespace evernote {
 		Timestamp* fullSyncBefore;
 		int updateCount;
 		long uploaded;
+    SyncState (evernote::edam::SyncState* ss);
+    SyncState ();
 	};
 
 	class NoteStore {
@@ -887,5 +889,7 @@ typedef std::string OAuthManager_generateAuthorizationUrl_t (evernote::OAuthMana
 typedef std::string OAuthManager_generateFinalAccessTokenUrl_t (evernote::OAuthManager*, std::string);
 typedef std::string OAuthManager_generateAccessToken_t (evernote::OAuthManager*, std::string);
 typedef std::string OAuthManager_getAccessToken_t (evernote::OAuthManager*);
+
+typedef evernote::SyncState* NoteStore_getSyncState_t (evernote::NoteStore*, std::string);
 
 #endif
