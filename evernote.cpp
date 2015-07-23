@@ -211,20 +211,7 @@ evernote::edam::NoteFilter* evernote::NoteFilter::getEdamObject () {
     evernote::edam::NoteFilter* eNoteFilter = new evernote::edam::NoteFilter ();
     return eNoteFilter;
 }
-
-        bool includeTitle;
-        bool includeContentLength;
-        bool includeCreated;
-        bool includeUpdated;
-        bool includeDeleted;
-        bool includeUpdateSequenceNum;
-        bool includeNotebookGuid;
-        bool includeTagGuids;
-        bool includeAttributes;
-        bool includeLargestResourceMime;
-        bool includeLargestResourceSize;
-
-
+    
 evernote::edam::NotesMetadataResultSpec* evernote::NotesMetadataResultSpec::getEdamObject () {
     evernote::edam::NotesMetadataResultSpec* enmrs = new evernote::edam::NotesMetadataResultSpec ();
     enmrs->includeTitle = includeTitle;
@@ -641,20 +628,102 @@ evernote::SyncState::SyncState (evernote::edam::SyncState* ss) {
 }
 
 evernote::SyncState* evernote::NoteStore::getSyncState (std::string authToken) {
-    try {        
+  try {        
 
-        evernote::edam::SyncState* returnSyncState = new evernote::edam::SyncState ();
-        noteStore->getSyncState (*returnSyncState, authToken);
+      evernote::edam::SyncState* returnSyncState = new evernote::edam::SyncState ();
+      noteStore->getSyncState (*returnSyncState, authToken);
 
-        return new evernote::SyncState (returnSyncState);
-    } catch (apache::thrift::transport::TTransportException e) {
-        std::cerr << "Exception in evernote::SyncState* evernote::NoteStore::getSyncState (std::string authToken)" 
-              << std::endl;
-        return NULL;
-    }
+      return new evernote::SyncState (returnSyncState);
+  } catch (apache::thrift::transport::TTransportException e) {
+      std::cerr << "Exception in evernote::SyncState* evernote::NoteStore::getSyncState (std::string authToken)" 
+            << std::endl;
+      return NULL;
+  }
 }
 
 extern "C" evernote::SyncState* NoteStore_getSyncState (evernote::NoteStore* n, std::string authToken) {
     return n->getSyncState (authToken);
 }
+
+evernote::SyncChunk::SyncChunk (evernote::edam::SyncChunk* sc) {
+		currentTime = new Timestamp (sc->currentTime);
+		chunkHighUSN = sc->chunkHighUSN;
+		updateCount = sc->updateCount;
+		
+    std::vector<Note*> notes;
+		std::vector<Notebook*> notebooks;
+		std::vector<Resource*> resources;
+
+    try {            
+        for (unsigned int i = 0; i < sc->notebooks.size (); i++) {
+            evernote::Notebook* n = new evernote::Notebook (sc->notebooks[i]);
+            notebooks.push_back (n);
+        }
+    } catch (apache::thrift::transport::TTransportException e) {
+        std::cerr << "Exception in evernote::NoteStore::listNotebooks (std::string authenticationToken)" << std::endl;
+    }
+
+    try {            
+        for (unsigned int i = 0; i < sc->notes.size (); i++) {
+            evernote::Note* n = new evernote::Note (&(sc->notes[i]));
+            notes.push_back (n);
+        }
+    } catch (apache::thrift::transport::TTransportException e) {
+        std::cerr << "Exception in evernote::NoteStore::listNotebooks (std::string authenticationToken)" << std::endl;
+    }
+
+    try {            
+        for (unsigned int i = 0; i < sc->resources.size (); i++) {
+            evernote::Resource* n = new evernote::Resource (&(sc->resources[i]));
+            resources.push_back (n);
+        }
+    } catch (apache::thrift::transport::TTransportException e) {
+        std::cerr << "Exception in evernote::NoteStore::listNotebooks (std::string authenticationToken)" << std::endl;
+    }
+
+}
+
+evernote::edam::SyncChunkFilter* evernote::SyncChunkFilter::getEdamObject () {
+  evernote::edam::SyncChunkFilter* escf = new evernote::edam::SyncChunkFilter ();
+  
+  escf->includeNotes = includeNotes;
+  escf->includeNoteResources = includeNoteResources;
+  escf->includeNoteAttributes = includeNoteAttributes;
+  escf->includeNotebooks = includeNotebooks;
+  escf->includeTags = includeTags;
+  escf->includeSearches = includeSearches;
+  escf->includeResources = includeResources;
+  escf->includeLinkedNotebooks = includeLinkedNotebooks;
+  escf->includeExpunged = includeExpunged;
+  escf->includeNoteApplicationDataFullMap = includeNoteApplicationDataFullMap;
+  escf->includeResourceApplicationDataFullMap = includeResourceApplicationDataFullMap;
+  escf->includeNoteResourceApplicationDataFullMap = includeNoteResourceApplicationDataFullMap;
+  return escf;
+}
+
+evernote::SyncChunk* evernote::NoteStore::getFilteredSyncChunk (std::string authToken, 
+    int afterUSN,  int maxEntries, SyncChunkFilter* filter){
+
+  try {        
+      evernote::edam::SyncChunk* returnSyncChunk = new evernote::edam::SyncChunk ();
+
+      evernote::edam::SyncChunkFilter* edamSyncChunkFilter = filter->getEdamObject ();
+
+      noteStore->getFilteredSyncChunk (*returnSyncChunk, authToken, 
+          afterUSN, maxEntries, *edamSyncChunkFilter);
+
+      return new evernote::SyncChunk (returnSyncChunk);
+  } catch (apache::thrift::transport::TTransportException e) {
+      std::cerr << "Exception in evernote::SyncChunk* evernote::NoteStore::getSyncChunk (std::string authToken" 
+            << ", int afterUSN, int maxEntries, SyncChunkFilter* filter)"
+            << std::endl;
+      return NULL;
+  }
+}
+
+extern "C" evernote::SyncChunk* NoteStore_getFilteredSyncChunk (evernote::NoteStore* n, std::string authToken,
+    int afterUSN, int maxEntries, evernote::SyncChunkFilter* filter) {
+    return n->getFilteredSyncChunk (authToken, afterUSN, maxEntries, filter);
+}
+
 

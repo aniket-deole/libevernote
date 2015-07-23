@@ -570,9 +570,11 @@ namespace evernote {
 		std::vector<GUID*> expungedSearches;
 		std::vector<LinkedNotebook*> linkedNotebooks;
 		std::vector<GUID*> expungedLinkedNotebooks; 
+    SyncChunk (evernote::edam::SyncChunk* ss);
+    SyncChunk ();
 	};
 
-	class SyncChunlFilter {
+	class SyncChunkFilter {
 	public:
 		bool includeNotes;
 		bool includeNoteResources;
@@ -587,6 +589,7 @@ namespace evernote {
 		bool includeResourceApplicationDataFullMap;
 		bool includeNoteResourceApplicationDataFullMap;
 		std::string requireNoteContentClass;
+    evernote::edam::SyncChunkFilter* getEdamObject ();
 	};
 
 	class SyncState {
@@ -611,7 +614,9 @@ namespace evernote {
 		/** IMPLEMENTED **/
 		~NoteStore ();
 
+    /** IMPLEMENTED **/
 		SyncState* getSyncState (std::string authenticationToken);
+
 		SyncState* getSyncStateWithMetrics (std::string authenticationToken, 
 			ClientUsageMetrics* clientMetrics);
 		SyncChunk* getFilteredSyncChunk (std::string authenticationToken, 
