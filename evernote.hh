@@ -896,5 +896,7 @@ typedef std::string OAuthManager_generateAccessToken_t (evernote::OAuthManager*,
 typedef std::string OAuthManager_getAccessToken_t (evernote::OAuthManager*);
 
 typedef evernote::SyncState* NoteStore_getSyncState_t (evernote::NoteStore*, std::string);
+typedef evernote::SyncChunk* NoteStore_getFilteredSyncChunk_t (evernote::NoteStore*, std::string,
+    int, int, evernote::SyncChunkFilter*);
 
 #endif

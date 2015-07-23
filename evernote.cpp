@@ -649,11 +649,7 @@ evernote::SyncChunk::SyncChunk (evernote::edam::SyncChunk* sc) {
 		currentTime = new Timestamp (sc->currentTime);
 		chunkHighUSN = sc->chunkHighUSN;
 		updateCount = sc->updateCount;
-		
-    std::vector<Note*> notes;
-		std::vector<Notebook*> notebooks;
-		std::vector<Resource*> resources;
-
+    std::cout << "Received Notes:" << sc->notes.size () << std::endl;
     try {            
         for (unsigned int i = 0; i < sc->notebooks.size (); i++) {
             evernote::Notebook* n = new evernote::Notebook (sc->notebooks[i]);
@@ -698,6 +694,20 @@ evernote::edam::SyncChunkFilter* evernote::SyncChunkFilter::getEdamObject () {
   escf->includeNoteApplicationDataFullMap = includeNoteApplicationDataFullMap;
   escf->includeResourceApplicationDataFullMap = includeResourceApplicationDataFullMap;
   escf->includeNoteResourceApplicationDataFullMap = includeNoteResourceApplicationDataFullMap;
+    
+  escf->__isset.includeNotes = includeNotes;
+  escf->__isset.includeNoteResources = includeNoteResources;
+  escf->__isset.includeNoteAttributes = includeNoteAttributes;
+  escf->__isset.includeNotebooks = includeNotebooks;
+  escf->__isset.includeTags = includeTags;
+  escf->__isset.includeSearches = includeSearches;
+  escf->__isset.includeResources = includeResources;
+  escf->__isset.includeLinkedNotebooks = includeLinkedNotebooks;
+  escf->__isset.includeExpunged = includeExpunged;
+  escf->__isset.includeNoteApplicationDataFullMap = includeNoteApplicationDataFullMap;
+  escf->__isset.includeResourceApplicationDataFullMap = includeResourceApplicationDataFullMap;
+  escf->__isset.includeNoteResourceApplicationDataFullMap = includeNoteResourceApplicationDataFullMap;
+ 
   return escf;
 }
 
