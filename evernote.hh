@@ -367,8 +367,8 @@ namespace evernote {
 
 	class Timestamp {
 	public:
-		long timestamp;
-		Timestamp (long t);
+		long long timestamp;
+		Timestamp (long long t);
 	};
 
 	class User {
@@ -610,7 +610,7 @@ namespace evernote {
 		static std::set<std::string> enmlProhibitedTags;
 		static std::set<std::string> enmlProhibitedAttributes;
 		/** IMPLEMENTED **/
-		NoteStore (std::string noteStoreUrl);
+		NoteStore (std::string domain, std::string noteStoreUrl);
 		/** IMPLEMENTED **/
 		~NoteStore ();
 
@@ -874,7 +874,7 @@ namespace evernote {
 
 // the types of the class factories
 typedef evernote::UserStore* createUserStore_t(std::string, int, std::string, std::string);
-typedef evernote::NoteStore* createNoteStore_t (std::string);
+typedef evernote::NoteStore* createNoteStore_t (std::string, std::string);
 typedef void destroy_t(void*);
 typedef std::string UserStore_getNoteStoreUrl_t (evernote::UserStore*, std::string);
 typedef std::vector<evernote::Notebook*>* NoteStore_listNotebooks_t (evernote::NoteStore*, std::string);

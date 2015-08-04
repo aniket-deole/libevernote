@@ -16,6 +16,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <protocol/TBinaryProtocol.h>
 #include <transport/THttpClient.h>
 #include <transport/TSSLSocket.h>
+#include <boost/algorithm/string.hpp>
 
 #include "evernote-sdk/UserStore.h"
 #include "evernote-sdk/NoteStore.h"
@@ -82,7 +83,7 @@ std::string evernote::UserStore::getNoteStoreUrl (std::string authToken) {
     }
 }
 
-evernote::NoteStore::NoteStore (std::string noteStoreUrl) {
+evernote::NoteStore::NoteStore (std::string domain, std::string noteStoreUrl) {
     try {
 
 
@@ -131,16 +132,22 @@ evernote::NoteStore::NoteStore (std::string noteStoreUrl) {
 	    enmlProhibitedAttributes.insert ("dynsrc");
 	    enmlProhibitedAttributes.insert ("tabindex");
 
+      if (boost::algorithm::starts_with (noteStoreUrl, "https://www.evernote.com")) {
+        noteStoreUrl = noteStoreUrl.erase (0,24);
+      } else if (boost::algorithm::starts_with (noteStoreUrl, "https://sandbox.evernote.com")) {
+        noteStoreUrl = noteStoreUrl.erase (0, 28);
+      }
+
         boost::shared_ptr<apache::thrift::transport::TSSLSocketFactory> sslSocketFactory = 
         boost::shared_ptr<apache::thrift::transport::TSSLSocketFactory>(
             new apache::thrift::transport::TSSLSocketFactory());;
 
         boost::shared_ptr<apache::thrift::transport::TSocket> sslSocket = sslSocketFactory->
-            createSocket("sandbox.evernote.com", 443);
+            createSocket(domain, 443);
         boost::shared_ptr<apache::thrift::transport::TBufferedTransport> bufferedTransport(
             new apache::thrift::transport::TBufferedTransport(sslSocket));
         userStoreHttpClient = boost::shared_ptr<apache::thrift::transport::THttpClient>(
-            new apache::thrift::transport::THttpClient(bufferedTransport, "sandbox.evernote.com", noteStoreUrl));
+            new apache::thrift::transport::THttpClient(bufferedTransport, domain, noteStoreUrl));
 
         userStoreHttpClient->open();
 
@@ -195,7 +202,7 @@ evernote::GUID::GUID (std::string g) {
     guid = g;
 }
 
-evernote::Timestamp::Timestamp (long t) {
+evernote::Timestamp::Timestamp (long long t) {
     timestamp = t;
 }
 
@@ -338,9 +345,10 @@ evernote::Note::Note (evernote::edam::Note* evernoteNote) {
     contentEnml = evernoteNote->content;
     contentHash = evernoteNote->contentHash;
     int contentLength = evernoteNote->contentLength;
-    Timestamp* created = new Timestamp (evernoteNote->created);
-    Timestamp* updated = new Timestamp (evernoteNote->updated);
-    Timestamp* deleted = new Timestamp (evernoteNote->deleted);
+    created = new Timestamp (evernoteNote->created);
+    std::cout << evernoteNote->created << "|" << created->timestamp << "|" << title << std::endl;
+    updated = new Timestamp (evernoteNote->updated);
+    deleted = new Timestamp (evernoteNote->deleted);
     bool active = evernoteNote->active;
     int updateSequenceNum = evernoteNote->updateSequenceNum;
     notebookGuid = evernoteNote->notebookGuid;
@@ -433,7 +441,6 @@ void evernote::Note::convertNodesFromEnmlToHtml (rapidxml::xml_node<>* root) {
                     root->name (docP->allocate_string("img"));
                     rapidxml::xml_attribute<> *attr = docP->allocate_attribute("src", hashValue);
                     root->append_attribute(attr);
-                    std::cout << root->name () << std::endl;
                 }
             }
         }
@@ -576,8 +583,8 @@ extern "C" evernote::UserStore* createUserStore(std::string a, int b, std::strin
     return new evernote::UserStore (a, b, c, d);
 }
 
-extern "C" evernote::NoteStore* createNoteStore (std::string a) {
-    return new evernote::NoteStore (a);
+extern "C" evernote::NoteStore* createNoteStore (std::string a, std::string b) {
+    return new evernote::NoteStore (a, b);
 }
 extern "C" void destroy(void* p) {
     // Commenting this right now.
